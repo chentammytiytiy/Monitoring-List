@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>監控申請表單</title>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--primary: #4f46e5;
+			--primary-hover: #4338ca;
+			--bg-color: #f8fafc;
+			--card-bg: rgba(255, 255, 255, 0.95);
+			--text-main: #1e293b;
+			--text-muted: #64748b;
+			--border-color: rgba(0, 0, 0, 0.1);
+			--input-bg: #ffffff;
+			color-scheme: light;
+		}
+
+		body {
+			margin: 0;
+			font-family: 'Inter', "微軟正黑體", sans-serif;
+			background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%);
+			color: var(--text-main);
+			height: 100vh;
+			display: flex;
+			overflow: hidden;
+		}
+
+		.sidebar {
+			width: 200px;
+			background: var(--card-bg);
+			backdrop-filter: blur(16px);
+			-webkit-backdrop-filter: blur(16px);
+			border-right: 1px solid var(--border-color);
+			padding: 1.5rem 0.8rem;
+			box-shadow: 2px 0 15px rgba(0, 0, 0, 0.05);
+			display: flex;
+			flex-direction: column;
+			flex-shrink: 0;
+		}
+
+		.sidebar-title {
+			font-size: 1.2rem;
+			font-weight: 700;
+			margin-bottom: 1.5rem;
+			background: linear-gradient(135deg, #818cf8, #c084fc);
+			-webkit-background-clip: text;
+			background-clip: text;
+			-webkit-text-fill-color: transparent;
+			text-align: center;
+		}
+
+		.sidebar-menu {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 0.6rem;
+		}
+
+		.sidebar-menu a {
+			text-decoration: none;
+			color: var(--text-muted);
+			font-size: 0.9rem;
+			font-weight: 600;
+			padding: 0.8rem 1rem;
+			border-radius: 10px;
+			transition: all 0.3s ease;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.sidebar-menu a:hover {
+			background: rgba(79, 70, 229, 0.1);
+			color: var(--primary);
+		}
+
+		.sidebar-menu a.active {
+			background: linear-gradient(135deg, var(--primary), #a855f7);
+			color: white;
+			box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+		}
+
+		.main-content {
+			flex: 1;
+			padding: 2rem 1.5rem;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			overflow-y: auto;
+			box-sizing: border-box;
+		}
+
+		.container {
+			background: var(--card-bg);
+			backdrop-filter: blur(16px);
+			-webkit-backdrop-filter: blur(16px);
+			border: 1px solid var(--border-color);
+			border-radius: 20px;
+			padding: 2.5rem;
+			width: 100%;
+			max-width: 900px;
+			box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+			animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(30px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		h1 {
+			margin: 0;
+			text-align: center;
+			font-size: 2.2rem;
+			font-weight: 700;
+			background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+			-webkit-background-clip: text;
+			background-clip: text;
+			-webkit-text-fill-color: transparent;
+			letter-spacing: -0.02em;
+		}
+
+		.header-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 2.5rem;
+			flex-wrap: wrap;
+			gap: 1rem;
+		}
+
+		.nav-link {
+			color: var(--primary);
+			text-decoration: none;
+			font-weight: 600;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			padding: 0.6rem 1.2rem;
+			border-radius: 8px;
+			background: rgba(79, 70, 229, 0.1);
+			transition: all 0.2s;
+			font-size: 0.95rem;
+		}
+
+		.nav-link:hover {
+			background: rgba(79, 70, 229, 0.2);
+		}
+
+		.form-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+			gap: 1.5rem;
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			animation: slideIn 0.5s ease forwards;
+			opacity: 0;
+		}
+
+		.form-group:nth-child(1) {
+			animation-delay: 0.05s;
+		}
+
+		.form-group:nth-child(2) {
+			animation-delay: 0.1s;
+		}
+
+		.form-group:nth-child(3) {
+			animation-delay: 0.15s;
+		}
+
+		.form-group:nth-child(4) {
+			animation-delay: 0.2s;
+		}
+
+		.form-group:nth-child(5) {
+			animation-delay: 0.25s;
+		}
+
+		.form-group:nth-child(6) {
+			animation-delay: 0.3s;
+		}
+
+		.form-group:nth-child(7) {
+			animation-delay: 0.35s;
+		}
+
+		.form-group:nth-child(8) {
+			animation-delay: 0.4s;
+		}
+
+		.form-group:nth-child(9) {
+			animation-delay: 0.45s;
+		}
+
+		.form-group:nth-child(10) {
+			animation-delay: 0.5s;
+		}
+
+		.form-group:nth-child(11) {
+			animation-delay: 0.55s;
+		}
+
+		.form-group:nth-child(12) {
+			animation-delay: 0.6s;
+		}
+
+		.form-group:nth-child(13) {
+			animation-delay: 0.65s;
+		}
+
+		.form-group:nth-child(14) {
+			animation-delay: 0.7s;
+		}
+
+		.form-group:nth-child(15) {
+			animation-delay: 0.75s;
+		}
+
+		.form-group:nth-child(16) {
+			animation-delay: 0.8s;
+		}
+
+		.form-group:nth-child(17) {
+			animation-delay: 0.85s;
+		}
+
+		.form-group:nth-child(18) {
+			animation-delay: 0.9s;
+		}
+
+		input:disabled,
+		select:disabled,
+		textarea:disabled {
+			opacity: 0.7;
+			cursor: not-allowed;
+			background: #f1f5f9 !important;
+			border-color: rgba(0, 0, 0, 0.1) !important;
+		}
+
+		@keyframes slideIn {
+			from {
+				opacity: 0;
+				transform: translateX(-10px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+
+		.form-group.full-width {
+			grid-column: 1 / -1;
+		}
+
+		label {
+			font-size: 0.9rem;
+			font-weight: 500;
+			margin-bottom: 0.6rem;
+			color: var(--text-muted);
+			letter-spacing: 0.02em;
+		}
+
+		input[type="text"],
+		input[type="date"],
+		input[type="time"],
+		input[type="number"],
+		select,
+		textarea {
+			background: var(--input-bg);
+			border: 1px solid var(--border-color);
+			color: var(--text-main);
+			padding: 0.8rem 1rem;
+			border-radius: 10px;
+			font-size: 1rem;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			outline: none;
+			font-family: inherit;
+		}
+
+		input:hover,
+		select:hover,
+		textarea:hover {
+			border-color: rgba(0, 0, 0, 0.3);
+		}
+
+		input:focus,
+		select:focus,
+		textarea:focus {
+			border-color: var(--primary);
+			box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+			background: #ffffff;
+		}
+
+		.radio-group {
+			display: flex;
+			gap: 1.5rem;
+			align-items: center;
+			height: 100%;
+			padding: 0.6rem 0;
+		}
+
+		.radio-group label {
+			color: var(--text-main);
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			cursor: pointer;
+			margin: 0;
+			font-size: 1rem;
+			transition: color 0.2s;
+		}
+
+		.radio-group label:hover {
+			color: var(--primary);
+		}
+
+		.radio-group input[type="radio"] {
+			accent-color: var(--primary);
+			width: 1.25rem;
+			height: 1.25rem;
+			cursor: pointer;
+		}
+
+		textarea {
+			resize: vertical;
+			min-height: 100px;
+		}
+
+		.buttons {
+			display: flex;
+			justify-content: flex-end;
+			gap: 1.2rem;
+			margin-top: 2.5rem;
+			grid-column: 1 / -1;
+			animation: slideIn 0.5s ease forwards;
+			animation-delay: 0.85s;
+			opacity: 0;
+		}
+
+		button {
+			padding: 0.8rem 1.8rem;
+			border: none;
+			border-radius: 10px;
+			font-size: 1.05rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.btn-cancel {
+			background: rgba(0, 0, 0, 0.05);
+			color: var(--text-main);
+			border: 1px solid var(--border-color);
+		}
+
+		.btn-cancel:hover {
+			background: rgba(0, 0, 0, 0.1);
+			border-color: rgba(0, 0, 0, 0.3);
+		}
+
+		.btn-save {
+			background: linear-gradient(135deg, var(--primary), #a855f7);
+			color: white;
+			box-shadow: 0 4px 15px -3px rgba(168, 85, 247, 0.4);
+		}
+
+		.btn-save:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 20px -4px rgba(168, 85, 247, 0.6);
+		}
+
+		.btn-save:active {
+			transform: translateY(1px);
+		}
+
+		.result-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+			gap: 1rem;
+			margin-bottom: 2.5rem;
+		}
+
+		.result-item {
+			background: rgba(0, 0, 0, 0.02);
+			padding: 1.2rem;
+			border-radius: 12px;
+			border: 1px solid var(--border-color);
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			transition: transform 0.2s ease, background 0.2s ease;
+		}
+
+		.result-item:hover {
+			transform: translateY(-2px);
+			background: rgba(0, 0, 0, 0.04);
+		}
+
+		.result-item .label {
+			color: var(--text-muted);
+			font-size: 0.9rem;
+			line-height: 1.5;
+			margin-right: 0.5rem;
+		}
+
+		.result-item .val {
+			font-weight: 500;
+			color: var(--text-main);
+			text-align: right;
+			max-width: 65%;
+			word-break: break-word;
+			line-height: 1.5;
+		}
+
+		.success-icon {
+			display: flex;
+			justify-content: center;
+			margin-bottom: 1.5rem;
+		}
+
+		.success-icon svg {
+			width: 64px;
+			height: 64px;
+			color: #34d399;
+			filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.4));
+		}
+
+		@media (max-width: 600px) {
+			.container {
+				padding: 1.5rem;
+			}
+
+			h1 {
+				font-size: 1.8rem;
+			}
+
+			.radio-group {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 0.8rem;
+			}
+
+			.buttons {
+				flex-direction: column;
+			}
+
+			button {
+				justify-content: center;
+			}
+		}
+	</style>
+</head>
+
+<body>
+
+	<div class="sidebar">
+		<div class="sidebar-title">系統選單</div>
+		<ul class="sidebar-menu">
+			<li>
+				<a href="監控表.html" class="active">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+					監控申請表單
+				</a>
+			</li>
+			<li>
+				<a href="更新監控表單.html">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+					查詢及更新監控表單
+				</a>
+			</li>
+			<li>
+				<a href="監控人員輪值表.html">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+					監控人員輪值表
+				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div class="main-content">
+
+	<!-- Form Container -->
+	<div class="container" id="form-container">
+		<div class="header-row">
+			<h1>監控申請表單</h1>
+		</div>
+		<form id="monitorForm">
+			<div class="form-grid">
+				<div class="form-group">
+					<label for="saleDate">開賣日期 <span style="color:#f472b6">*</span></label>
+					<input type="text" id="saleDate" name="開賣日期" required placeholder="yyyy/mm/dd"
+						onfocus="this.type='date'" onblur="if(this.value) this.type='date'; else this.type='text';">
+				</div>
+
+				<div class="form-group">
+					<label for="dayOfWeek">星期</label>
+					<input type="text" id="dayOfWeek" name="星期" readonly placeholder="選擇日期後自動帶入">
+				</div>
+
+				<div class="form-group">
+					<label for="time">時間 <span style="color:#f472b6">*</span></label>
+					<input type="time" id="time" name="時間" required>
+				</div>
+
+				<div class="form-group">
+					<label for="ticketAction">售票/核銷</label>
+					<select id="ticketAction" name="售票/核銷">
+						<option value="售票">售票</option>
+						<option value="核銷">核銷</option>
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label for="monitorLevel">監控等級</label>
+					<select id="monitorLevel" name="監控等級">
+						<option value="小">小</option>
+						<option value="中">中</option>
+						<option value="大">大</option>
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label for="systemType">系統別</label>
+					<select id="systemType" name="系統別">
+						<option value="A系統">A系統</option>
+						<option value="E系統">E系統</option>
+						<option value="交通">交通</option>
+						<option value="其他">其他</option>
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label for="programCode">A節目代碼 / E活動分類 <span style="color:#f472b6">*</span></label>
+					<input type="text" id="programCode" name="A節目代碼/E活動分類" required placeholder="請輸入代碼或分類">
+				</div>
+
+				<div class="form-group">
+					<label for="eventName">活動名稱 <span style="color:#f472b6">*</span></label>
+					<input type="text" id="eventName" name="活動名稱" required placeholder="請輸入活動名稱">
+				</div>
+
+				<div class="form-group">
+					<label for="machineLevel">機器等級</label>
+					<select id="machineLevel" name="機器等級">
+						<option value="小">小</option>
+						<option value="中">中</option>
+						<option value="大">大</option>
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label>排隊機制</label>
+					<div class="radio-group">
+						<label><input type="radio" name="排隊機制" value="無" checked> 無</label>
+						<label><input type="radio" name="排隊機制" value="一般排隊"> 一般排隊</label>
+						<label><input type="radio" name="排隊機制" value="流管畫面"> 流管畫面</label>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="ticketChannel">售票通路</label>
+					<select id="ticketChannel" name="售票通路">
+						<option value="網站">網站</option>
+						<option value="機台">機台</option>
+						<option value="網站+機台">網站+機台</option>
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label for="machineFlowControl">機台流管</label>
+					<input type="number" id="machineFlowControl" name="機台流管" value="500" placeholder="請輸入機台流管">
+				</div>
+
+				<div class="form-group">
+					<label for="ticketCount">可售張數</label>
+					<input type="text" id="ticketCount" name="可售張數" placeholder="請輸入可售張數">
+				</div>
+
+				<div class="form-group">
+					<label for="otherMonitor">其它單位監控</label>
+					<input type="text" id="otherMonitor" name="其它單位監控" value="無">
+				</div>
+
+				<div class="form-group">
+					<label for="monitorPersonnel">負責業務 <span style="color:#f472b6">*</span></label>
+					<input type="text" id="monitorPersonnel" name="負責業務" required placeholder="請輸入人員名稱">
+				</div>
+
+				<div class="form-group">
+					<label for="fileOP">建檔OP</label>
+					<input type="text" id="fileOP" name="建檔OP" placeholder="請輸入建檔OP">
+				</div>
+
+				<div class="form-group full-width">
+					<label for="specialNote">特別說明</label>
+					<textarea id="specialNote" name="特別說明" placeholder="請填寫任何特別說明事項..."></textarea>
+				</div>
+			</div>
+
+			<div class="buttons">
+				<button type="button" class="btn-cancel" id="btn-cancel">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+						stroke-linecap="round" stroke-linejoin="round">
+						<path d="M3 3h18v18H3zM15 9l-6 6M9 9l6 6" />
+					</svg>
+					清空表單
+				</button>
+				<button type="button" class="btn-cancel" id="btn-cancel-edit" style="display: none;">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+						stroke-linecap="round" stroke-linejoin="round">
+						<line x1="18" y1="6" x2="6" y2="18"></line>
+						<line x1="6" y1="6" x2="18" y2="18"></line>
+					</svg>
+					放棄編輯
+				</button>
+				<button type="submit" class="btn-save">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+						stroke-linecap="round" stroke-linejoin="round">
+						<line x1="12" y1="5" x2="12" y2="19"></line>
+						<line x1="5" y1="12" x2="19" y2="12"></line>
+					</svg>
+					新增此筆資料
+				</button>
+			</div>
+		</form>
+	</div>
+
+	<!-- Multi-records Container -->
+	<div class="container" id="multi-records-container" style="display: none; margin-top: 1.5rem;">
+		<h2 style="margin-top:0; font-size:1.4rem; color:var(--text-main); margin-bottom:1rem;">已加入清單 <span
+				id="record-count" style="color:var(--text-muted); font-size: 1.1rem;">(0)</span></h2>
+		<div style="overflow-x: auto;">
+			<table style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; min-width: 500px;">
+				<thead>
+					<tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+						<th
+							style="padding: 0.8rem 0.5rem; color: var(--text-muted); font-weight:500; font-size: 0.95rem;">
+							開賣日期</th>
+						<th
+							style="padding: 0.8rem 0.5rem; color: var(--text-muted); font-weight:500; font-size: 0.95rem;">
+							活動名稱</th>
+						<th
+							style="padding: 0.8rem 0.5rem; color: var(--text-muted); font-weight:500; font-size: 0.95rem; width: 140px;">
+							操作</th>
+					</tr>
+				</thead>
+				<tbody id="multi-records-tbody"></tbody>
+			</table>
+		</div>
+
+		<div class="buttons" style="justify-content: flex-end; margin-top: 1rem;">
+			<button type="button" class="btn-save" id="btn-submit-all"
+				style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px -3px rgba(16, 185, 129, 0.4);">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+					stroke-linecap="round" stroke-linejoin="round">
+					<path d="M22 2L11 13"></path>
+					<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+				</svg>
+				全部送出並發送 Email
+			</button>
+		</div>
+	</div>
+
+	<!-- Result Container -->
+	<div class="container" id="result-container" style="display: none;">
+		<div class="success-icon">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+				stroke-linejoin="round">
+				<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+				<polyline points="22 4 12 14.01 9 11.01"></polyline>
+			</svg>
+		</div>
+		<h1>申請結果</h1>
+		<div id="result-content"></div>
+		<div class="buttons" style="justify-content: center;">
+			<button id="btn-back" class="btn-cancel">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+					stroke-linecap="round" stroke-linejoin="round">
+					<line x1="19" y1="12" x2="5" y2="12"></line>
+					<polyline points="12 19 5 12 12 5"></polyline>
+				</svg>
+				返回修改
+			</button>
+			<button id="btn-export" class="btn-save">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+					stroke-linecap="round" stroke-linejoin="round">
+					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+					<polyline points="14 2 14 8 20 8"></polyline>
+					<line x1="8" y1="13" x2="16" y2="13"></line>
+					<line x1="8" y1="17" x2="16" y2="17"></line>
+					<polyline points="10 9 9 9 8 9"></polyline>
+				</svg>
+				匯出 EXCEL
+			</button>
+		</div>
+	</div>
+	</div>
+
+	<script>
+		let recordsList = [];
+		let editIndex = -1;
+
+		// Auto calculate "day of week" when date changes
+		const dateInput = document.getElementById('saleDate');
+		const dayOfWeekInput = document.getElementById('dayOfWeek');
+
+		dateInput.addEventListener('change', function (e) {
+			const days = ['日', '一', '二', '三', '四', '五', '六'];
+			if (e.target.value) {
+				const d = new Date(e.target.value);
+				dayOfWeekInput.value = days[d.getDay()];
+			} else {
+				dayOfWeekInput.value = '';
+			}
+		});
+
+		// Form reset helper
+		function resetFormHelper() {
+			document.getElementById('monitorForm').reset();
+			dayOfWeekInput.value = '';
+			document.getElementById('saleDate').type = 'text';
+			editIndex = -1;
+
+			const btnSave = document.querySelector('button[type="submit"].btn-save');
+			btnSave.innerHTML = `
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<line x1="12" y1="5" x2="12" y2="19"></line>
+					<line x1="5" y1="12" x2="19" y2="12"></line>
+				</svg>
+				新增此筆資料
+			`;
+			btnSave.style.background = ''; // reset to default CSS
+
+			document.getElementById('btn-cancel-edit').style.display = 'none';
+			document.getElementById('btn-cancel').style.display = 'flex';
+		}
+
+		// Cancel Empty Form button behavior
+		document.getElementById('btn-cancel').addEventListener('click', function () {
+			if (confirm("確定要清空目前填寫的欄位嗎？")) {
+				resetFormHelper();
+			}
+		});
+
+		// Cancel Edit button behavior
+		document.getElementById('btn-cancel-edit').addEventListener('click', function () {
+			if (confirm("確定要放棄編輯，回復到填寫狀態嗎？")) {
+				resetFormHelper();
+			}
+		});
+
+		function updateRecordsTable() {
+			const container = document.getElementById('multi-records-container');
+			const tbody = document.getElementById('multi-records-tbody');
+			const countSpan = document.getElementById('record-count');
+
+			if (recordsList.length === 0) {
+				container.style.display = 'none';
+				return;
+			}
+
+			container.style.display = 'block';
+			countSpan.textContent = `(共 ${recordsList.length} 筆)`;
+
+			let rows = '';
+			recordsList.forEach((r, idx) => {
+				rows += `
+					<tr style="border-bottom: 1px solid var(--border-color);">
+						<td style="padding: 0.8rem 0.5rem; color: var(--text-main);">${r['開賣日期']}</td>
+						<td style="padding: 0.8rem 0.5rem; color: var(--text-main);">${r['活動名稱']}</td>
+						<td style="padding: 0.8rem 0.5rem;">
+							<button type="button" onclick="editRecord(${idx})" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: rgba(59, 130, 246, 0.1); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); margin-right: 0.5rem; cursor: pointer; border-radius: 6px;">
+								編輯
+							</button>
+							<button type="button" onclick="removeRecord(${idx})" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); cursor: pointer; border-radius: 6px;">
+								刪除
+							</button>
+						</td>
+					</tr>
+				`;
+			});
+			tbody.innerHTML = rows;
+		}
+
+		window.removeRecord = function (idx) {
+			recordsList.splice(idx, 1);
+			if (editIndex === idx) {
+				resetFormHelper();
+			} else if (editIndex > idx) {
+				editIndex--;
+			}
+			updateRecordsTable();
+		};
+
+		window.editRecord = function (idx) {
+			editIndex = idx;
+			const record = recordsList[idx];
+			const form = document.getElementById('monitorForm');
+
+			Array.from(form.elements).forEach(input => {
+				if (!input.name) return;
+				let val = record[input.name];
+				if (val === '(無)') val = '';
+
+				if (input.type === 'radio') {
+					input.checked = (input.value === val);
+				} else {
+					input.value = val;
+				}
+			});
+
+			// Trigger date input UI logic
+			const sDate = document.getElementById('saleDate');
+			if (sDate.value) {
+				sDate.type = 'date';
+			} else {
+				sDate.type = 'text';
+			}
+
+			// Style submit button for edit mode
+			const btnSave = document.querySelector('button[type="submit"].btn-save');
+			btnSave.innerHTML = `
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+					<polyline points="17 21 17 13 7 13 7 21"></polyline>
+					<polyline points="7 3 7 8 15 8"></polyline>
+				</svg>
+				儲存修改
+			`;
+			btnSave.style.background = 'linear-gradient(135deg, #f59e0b, #ea580c)';
+
+			document.getElementById('btn-cancel').style.display = 'none';
+			document.getElementById('btn-cancel-edit').style.display = 'flex';
+
+			document.getElementById('form-container').scrollIntoView({ behavior: 'smooth' });
+		};
+
+		// Form submission -> Save to global array -> Display list
+		document.getElementById('monitorForm').addEventListener('submit', function (e) {
+			e.preventDefault();
+
+			const formData = new FormData(this);
+			const record = {};
+
+			for (const [key, value] of formData.entries()) {
+				record[key] = value.trim() === '' ? '(無)' : value;
+			}
+			// Special handle disabled input
+			const otherMonitor = document.getElementById('otherMonitor').value.trim();
+			record['其它單位監控'] = otherMonitor === '' ? '(無)' : otherMonitor;
+
+			if (editIndex > -1) {
+				recordsList[editIndex] = record;
+			} else {
+				recordsList.push(record);
+			}
+
+			updateRecordsTable();
+			resetFormHelper();
+
+			// scroll to list smooth
+			document.getElementById('multi-records-container').scrollIntoView({ behavior: 'smooth' });
+		});
+
+		// Submit All -> Send Email
+		document.getElementById('btn-submit-all').addEventListener('click', function () {
+			if (recordsList.length === 0) return;
+
+			let mailBody = '以下為監控申請內容：\n\n';
+			let dataRowsHtml = '';
+
+			// Sort by date (clone array)
+			const sortedRecords = [...recordsList].sort((a, b) => {
+				const dateA = new Date(a['開賣日期'] || '9999/12/31');
+				const dateB = new Date(b['開賣日期'] || '9999/12/31');
+				return dateA - dateB;
+			});
+
+			sortedRecords.forEach((record, index) => {
+				mailBody += `========= 第 ${index + 1} 筆 =========\n`;
+				for (const key in record) {
+					mailBody += `${key}：${record[key]}\n`;
+				}
+				mailBody += '\n';
+
+				const qQueue = record['排隊機制'];
+				dataRowsHtml += `
+					<tr>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${index + 1}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['開賣日期']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['星期']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['時間']}</td>
+						<td style="background-color: #C4D79B; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['售票/核銷']}</td>
+						<td style="background-color: #B7DEE8; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['監控等級']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['系統別']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['A節目代碼/E活動分類']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['活動名稱']}</td>
+						<td style="background-color: #D9D9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['機器等級']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '無' ? 'V' : ''}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '一般排隊' ? 'V' : ''}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '流管畫面' ? 'V' : ''}</td>
+						<td style="background-color: #FFE699; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['售票通路']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['機台流管']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['可售張數']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['其它單位監控']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['特別說明']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['負責業務']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['建檔OP']}</td>
+					</tr>
+				`;
+			});
+
+			// Build HTML template for ActiveX Outlook
+			let mailHtmlBody = `
+				<p>以下為監控申請內容：</p>
+				<table style="border-collapse: collapse;">
+					<tr>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">項次</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">開賣日期</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">星期</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">時間</th>
+						<th style="background-color: #DAEEF3; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">售票/核銷</th>
+						<th style="background-color: #DAEEF3; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">監控等級</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">系統別</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">A節目代碼/<br>E活動分類</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">活動名稱</th>
+						<th style="background-color: #D8E4BC; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">機器等級</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" colspan="3">排隊機制</th>
+						<th style="background-color: #CCC0DA; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">售票通路</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">機台<br>流管</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">可售<br>張數</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">其它單位<br>監控</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">特別說明</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">負責業務</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;" rowspan="2">建檔OP</th>
+					</tr>
+					<tr>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;">無</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;">一般排隊</th>
+						<th style="background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding:4px;">流管畫面</th>
+					</tr>
+					${dataRowsHtml}
+				</table>
+			`;
+
+
+			const emailReceiver = "Tammy_Chen@qware.com.tw";
+			const emailSubject = "監控申請";
+
+			// Build success UI summary
+			let summaryHtml = `<div style="text-align: center; margin-bottom: 2rem;">
+				<p style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 1.5rem;">已成功編譯 <strong>${recordsList.length}</strong> 筆監控申請資料！</p>
+				<a href="查詢表.html" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, var(--primary), #a855f7); color: white; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); transition: all 0.2s;">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="11" cy="11" r="8"></circle>
+						<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+					</svg>
+					查詢已申請資料
+				</a>
+			</div>`;
+
+			document.getElementById('result-content').innerHTML = summaryHtml;
+			document.getElementById('form-container').style.display = 'none';
+			document.getElementById('multi-records-container').style.display = 'none';
+			document.getElementById('result-container').style.display = 'block';
+
+			// Save to localStorage for search page
+			try {
+				let history = JSON.parse(localStorage.getItem('appliedMonitorRecords') || '[]');
+				// Append current batch to history
+				// We also add a timestamp to know when it was applied
+				const applyTime = new Date().toLocaleString('zh-TW');
+				const recordsToSave = sortedRecords.map(r => ({ ...r, '申請時間': applyTime }));
+				history = history.concat(recordsToSave);
+				localStorage.setItem('appliedMonitorRecords', JSON.stringify(history));
+			} catch (e) {
+				console.error('LocalStorage save failed', e);
+			}
+
+			// Try to open Outlook explicitly (IE/Edge IE mode)
+			try {
+				const outlookApp = new window.ActiveXObject("Outlook.Application");
+				const mailItem = outlookApp.CreateItem(0);
+				mailItem.To = emailReceiver;
+				mailItem.Subject = emailSubject;
+				mailItem.HTMLBody = mailHtmlBody; // Use HTMLBody for formatted table
+				mailItem.Display();
+			} catch (err) {
+				// For non-IE browsers, ActiveX will fail. 
+				// We cannot use mailto: because it doesn't support HTML tables.
+				// Solution: Generate an .eml file (Outlook draft) and trigger download.
+
+				const emlSubject = "=?utf-8?B?" + btoa(unescape(encodeURIComponent(emailSubject))) + "?=";
+
+				const emlContent = `To: ${emailReceiver}
+Subject: ${emlSubject}
+X-Unsent: 1
+Content-Type: text/html; charset=utf-8
+
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+${mailHtmlBody}
+</body>
+</html>`;
+
+				const blob = new Blob([emlContent], { type: 'message/rfc822' });
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+
+				// Naming the fallback file
+				const today = new Date();
+				const yyyy = today.getFullYear();
+				const mm = String(today.getMonth() + 1).padStart(2, '0');
+				const dd = String(today.getDate()).padStart(2, '0');
+				a.download = `監控申請信件_${yyyy}${mm}${dd}.eml`;
+
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				window.URL.revokeObjectURL(url);
+			}
+		});
+
+		// Back button
+		document.getElementById('btn-back').addEventListener('click', function () {
+			document.getElementById('result-container').style.display = 'none';
+			document.getElementById('form-container').style.display = 'block';
+			if (recordsList.length > 0) {
+				document.getElementById('multi-records-container').style.display = 'block';
+			}
+		});
+
+		// Export ALL records to Excel button
+		document.getElementById('btn-export').addEventListener('click', function () {
+			let dataRows = '';
+
+			// Sort by date (clone array to not mess up UI order)
+			const sortedRecords = [...recordsList].sort((a, b) => {
+				const dateA = new Date(a['開賣日期'] || '9999/12/31');
+				const dateB = new Date(b['開賣日期'] || '9999/12/31');
+				return dateA - dateB;
+			});
+
+			sortedRecords.forEach((r, idx) => {
+				const qQueue = r['排隊機制'];
+				dataRows += `
+					<tr>
+						<td class="td-data">${idx + 1}</td>
+						<td class="td-data">${r['開賣日期']}</td>
+						<td class="td-data">${r['星期']}</td>
+						<td class="td-data">${r['時間']}</td>
+						<td class="td-green">${r['售票/核銷']}</td>
+						<td class="td-blue">${r['監控等級']}</td>
+						<td class="td-data">${r['系統別']}</td>
+						<td class="td-data">${r['A節目代碼/E活動分類']}</td>
+						<td class="td-data">${r['活動名稱']}</td>
+						<td class="td-gray">${r['機器等級']}</td>
+						<td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
+						<td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
+						<td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
+						<td class="td-yellow">${r['售票通路']}</td>
+						<td class="td-data">${r['機台流管']}</td>
+						<td class="td-data">${r['可售張數']}</td>
+						<td class="td-data">${r['其它單位監控']}</td>
+						<td class="td-data">${r['特別說明']}</td>
+						<td class="td-data">${r['負責業務']}</td>
+						<td class="td-data">${r['建檔OP']}</td>
+					</tr>
+				`;
+			});
+
+			let tableHtml = `
+				<style>
+					.th-fde9d9 { background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; }
+					.th-daeef3 { background-color: #DAEEF3; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; }
+					.th-d8e4bc { background-color: #D8E4BC; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; }
+					.th-ccc0da { background-color: #CCC0DA; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; }
+					.td-data { border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
+					.td-green { background-color: #C4D79B; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
+					.td-blue { background-color: #B7DEE8; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
+					.td-gray { background-color: #D9D9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
+					.td-yellow { background-color: #FFE699; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
+				</style>
+				<table style="border-collapse: collapse;">
+					<tr>
+						<th class="th-fde9d9" rowspan="2">項次</th>
+						<th class="th-fde9d9" rowspan="2">開賣日期</th>
+						<th class="th-fde9d9" rowspan="2">星期</th>
+						<th class="th-fde9d9" rowspan="2">時間</th>
+						<th class="th-daeef3" rowspan="2">售票/核銷</th>
+						<th class="th-daeef3" rowspan="2">監控等級</th>
+						<th class="th-fde9d9" rowspan="2">系統別</th>
+						<th class="th-fde9d9" rowspan="2">A節目代碼/<br>E活動分類</th>
+						<th class="th-fde9d9" rowspan="2">活動名稱</th>
+						<th class="th-d8e4bc" rowspan="2">機器等級</th>
+						<th class="th-fde9d9" colspan="3">排隊機制</th>
+						<th class="th-ccc0da" rowspan="2">售票通路</th>
+						<th class="th-fde9d9" rowspan="2">機台<br>流管</th>
+						<th class="th-fde9d9" rowspan="2">可售<br>張數</th>
+						<th class="th-fde9d9" rowspan="2">其它單位<br>監控</th>
+						<th class="th-fde9d9" rowspan="2">特別說明</th>
+						<th class="th-fde9d9" rowspan="2">負責業務</th>
+						<th class="th-fde9d9" rowspan="2">建檔OP</th>
+					</tr>
+					<tr>
+						<th class="th-fde9d9">無</th>
+						<th class="th-fde9d9">一般排隊</th>
+						<th class="th-fde9d9">流管畫面</th>
+					</tr>
+					${dataRows}
+				</table>
+			`;
+
+			const template = `
+				<html xmlns:o="urn:schemas-microsoft-com:office:office" 
+					  xmlns:x="urn:schemas-microsoft-com:office:excel" 
+					  xmlns="http://www.w3.org/TR/REC-html40">
+				<head>
+					<meta charset="UTF-8">
+					<!--[if gte mso 9]>
+					<xml>
+						<x:ExcelWorkbook>
+							<x:ExcelWorksheets>
+								<x:ExcelWorksheet>
+									<x:Name>監控申請表</x:Name>
+									<x:WorksheetOptions>
+										<x:DisplayGridlines/>
+									</x:WorksheetOptions>
+								</x:ExcelWorksheet>
+							</x:ExcelWorksheets>
+						</x:ExcelWorkbook>
+					</xml>
+					<![endif]-->
+				</head>
+				<body>${tableHtml}</body>
+				</html>
+			`;
+
+			const blob = new Blob([template], { type: 'application/vnd.ms-excel' });
+			const url = window.URL.createObjectURL(blob);
+
+			const today = new Date();
+			const yyyy = today.getFullYear();
+			const mm = String(today.getMonth() + 1).padStart(2, '0');
+			const dd = String(today.getDate()).padStart(2, '0');
+			const fileName = `監控申請表${yyyy}${mm}${dd}.xls`;
+
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = fileName;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			window.URL.revokeObjectURL(url);
+		});
+	</script>
+</body>
+
+</html>
