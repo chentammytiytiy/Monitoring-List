@@ -6,6 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>監控申請表單</title>
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 	<style>
 		:root {
 			--primary: #4f46e5;
@@ -507,25 +508,9 @@
 		</div>
 		<form id="monitorForm">
 			<div class="form-grid">
-				<div class="form-group">
-					<label for="saleDate">開賣日期 <span style="color:#f472b6">*</span></label>
-					<input type="text" id="saleDate" name="開賣日期" required placeholder="yyyy/mm/dd"
-						onfocus="this.type='date'" onblur="if(this.value) this.type='date'; else this.type='text';">
-				</div>
-
-				<div class="form-group">
-					<label for="dayOfWeek">星期</label>
-					<input type="text" id="dayOfWeek" name="星期" readonly placeholder="選擇日期後自動帶入">
-				</div>
-
-				<div class="form-group">
-					<label>時間 <span style="color:#f472b6">*</span></label>
-					<div style="display: flex; gap: 0.5rem; align-items: center;">
-						<input type="text" id="time-hh" required placeholder="時" list="hh-options" pattern="^([0-1]?[0-9]|2[0-3])$" title="00-23" maxlength="2" style="width: 50%; text-align: center;" onchange="if(this.value) this.value = this.value.padStart(2, '0')">
-						<span>:</span>
-						<input type="text" id="time-mm" required placeholder="分" list="mm-options" pattern="^[0-5][0-9]$" title="00-59" maxlength="2" style="width: 50%; text-align: center;" onchange="if(this.value) this.value = this.value.padStart(2, '0')">
-					</div>
-					<input type="hidden" id="time" name="時間">
+				<div class="form-group" style="grid-column: span 2;">
+					<label for="saleDateTime">銷售日期時間 <span style="color:#f472b6">*</span></label>
+					<input type="text" id="saleDateTime" name="銷售日期時間" required placeholder="請選擇銷售日期與時間" style="background:#fff url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'3\' y=\'4\' width=\'18\' height=\'18\' rx=\'2\' ry=\'2\'/><line x1=\'16\' y1=\'2\' x2=\'16\' y2=\'6\'/><line x1=\'8\' y1=\'2\' x2=\'8\' y2=\'6\'/><line x1=\'3\' y1=\'10\' x2=\'21\' y2=\'10\'/></svg>') no-repeat 96% center; padding-right: 2.5rem; cursor: pointer;">
 				</div>
 
 				<div class="form-group">
@@ -648,19 +633,6 @@
 					新增此筆資料
 				</button>
 			</div>
-
-			<datalist id="hh-options"></datalist>
-			<datalist id="mm-options"></datalist>
-			<script>
-				const hhList = document.getElementById('hh-options');
-				for(let i=0; i<24; i++) {
-					hhList.innerHTML += `<option value="${String(i).padStart(2, '0')}"></option>`;
-				}
-				const mmList = document.getElementById('mm-options');
-				for(let i=0; i<60; i++) {
-					mmList.innerHTML += `<option value="${String(i).padStart(2, '0')}"></option>`;
-				}
-			</script>
 		</form>
 	</div>
 
@@ -735,29 +707,23 @@
 	</div>
 	</div>
 
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh-tw.js"></script>
 	<script>
+		window.fp = flatpickr("#saleDateTime", {
+			enableTime: true,
+			dateFormat: "Y/m/d H:i",
+			time_24hr: true,
+			locale: "zh_tw"
+		});
+
 		let recordsList = [];
 		let editIndex = -1;
-
-		// Auto calculate "day of week" when date changes
-		const dateInput = document.getElementById('saleDate');
-		const dayOfWeekInput = document.getElementById('dayOfWeek');
-
-		dateInput.addEventListener('change', function (e) {
-			const days = ['日', '一', '二', '三', '四', '五', '六'];
-			if (e.target.value) {
-				const d = new Date(e.target.value);
-				dayOfWeekInput.value = days[d.getDay()];
-			} else {
-				dayOfWeekInput.value = '';
-			}
-		});
 
 		// Form reset helper
 		function resetFormHelper() {
 			document.getElementById('monitorForm').reset();
-			dayOfWeekInput.value = '';
-			document.getElementById('saleDate').type = 'text';
+			if (window.fp) window.fp.clear();
 			editIndex = -1;
 
 			const btnSave = document.querySelector('button[type="submit"].btn-save');
@@ -837,33 +803,23 @@
 			const form = document.getElementById('monitorForm');
 
 			Array.from(form.elements).forEach(input => {
-				if (input.id === 'time-hh') {
-					input.value = (record['時間'] || '').split(':')[0] || '';
-					return;
-				}
-				if (input.id === 'time-mm') {
-					input.value = (record['時間'] || '').split(':')[1] || '';
-					return;
-				}
-
 				if (!input.name) return;
 				let val = record[input.name];
 				if (val === '(無)') val = '';
 
+				if (input.id === 'saleDateTime') {
+					if (record['開賣日期'] && record['時間']) {
+						val = record['開賣日期'] + ' ' + record['時間'];
+						if (window.fp) window.fp.setDate(val);
+					}
+				}
+
 				if (input.type === 'radio') {
 					input.checked = (input.value === val);
-				} else {
+				} else if (input.id !== 'saleDateTime') {
 					input.value = val;
 				}
 			});
-
-			// Trigger date input UI logic
-			const sDate = document.getElementById('saleDate');
-			if (sDate.value) {
-				sDate.type = 'date';
-			} else {
-				sDate.type = 'text';
-			}
 
 			// Style submit button for edit mode
 			const btnSave = document.querySelector('button[type="submit"].btn-save');
@@ -887,16 +843,32 @@
 		document.getElementById('monitorForm').addEventListener('submit', function (e) {
 			e.preventDefault();
 
-			const hh = document.getElementById('time-hh').value.padStart(2, '0');
-			const mm = document.getElementById('time-mm').value.padStart(2, '0');
-			document.getElementById('time').value = `${hh}:${mm}`;
-
 			const formData = new FormData(this);
 			const record = {};
 
+			const dt = document.getElementById('saleDateTime').value.trim();
+			let datePart = '';
+			let timePart = '';
+			let dayStr = '';
+			if (dt) {
+				const parts = dt.split(' ');
+				if (parts.length === 2) {
+					datePart = parts[0];
+					timePart = parts[1];
+					const days = ['日', '一', '二', '三', '四', '五', '六'];
+					dayStr = days[new Date(parts[0].replace(/-/g, '/')).getDay()];
+				}
+			}
+
 			for (const [key, value] of formData.entries()) {
+				if (key === '銷售日期時間') continue;
 				record[key] = value.trim() === '' ? '(無)' : value;
 			}
+			
+			record['開賣日期'] = datePart || '(無)';
+			record['時間'] = timePart || '(無)';
+			record['星期'] = dayStr || '(無)';
+
 			// Special handle disabled input
 			const otherMonitor = document.getElementById('otherMonitor').value.trim();
 			record['其它單位監控'] = otherMonitor === '' ? '(無)' : otherMonitor;
