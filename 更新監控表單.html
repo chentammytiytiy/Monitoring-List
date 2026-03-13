@@ -855,7 +855,15 @@
                 } else if (col === 'saleDate') {
                     td.innerHTML = `<input type="date" class="cell-input input-${col}" value="${val.replace(/\//g, '-')}">`;
                 } else if (col === 'time') {
-                    td.innerHTML = `<input type="text" class="cell-input input-${col}" value="${val}" list="time-options" placeholder="HH:mm" pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$" title="請輸入24小時制時間，例如 14:00">`;
+                    const hh = val ? val.split(':')[0] : '';
+                    const mm = val ? val.split(':')[1] : '';
+                    td.innerHTML = `
+                        <div style="display:flex; gap:2px; align-items:center; justify-content:center;">
+                            <input type="text" class="cell-input input-time-hh" value="${hh}" list="hh-options" placeholder="時" maxlength="2" style="width:2.2rem;text-align:center;padding:0.2rem;" onchange="if(this.value) this.value=this.value.padStart(2,'0')" title="00-23" pattern="^([0-1]?[0-9]|2[0-3])$">
+                            <span>:</span>
+                            <input type="text" class="cell-input input-time-mm" value="${mm}" list="mm-options" placeholder="分" maxlength="2" style="width:2.2rem;text-align:center;padding:0.2rem;" onchange="if(this.value) this.value=this.value.padStart(2,'0')" title="00-59" pattern="^[0-5][0-9]$">
+                        </div>
+                    `;
                 } else if (col === 'machineFlow') {
                     td.innerHTML = `<input type="number" class="cell-input input-${col}" value="${val}">`;
                 } else {
@@ -869,7 +877,9 @@
 
             // Read values back
             const newSaleDate = tr.querySelector('.input-saleDate').value.trim().replace(/-/g, '/');
-            const newTime = tr.querySelector('.input-time').value.trim();
+            const hhVal = tr.querySelector('.input-time-hh').value.trim();
+            const mmVal = tr.querySelector('.input-time-mm').value.trim();
+            const newTime = (hhVal && mmVal) ? `${hhVal.padStart(2, '0')}:${mmVal.padStart(2, '0')}` : '';
             const newAction = tr.querySelector('.input-action').value.trim();
             const newLevel = tr.querySelector('.input-level').value.trim();
             const newSys = tr.querySelector('.input-sys').value.trim();
@@ -1178,9 +1188,18 @@
             window.URL.revokeObjectURL(url);
         });
     </script>
-    <datalist id="time-options">
-        <option value="00:00"></option><option value="00:30"></option><option value="01:00"></option><option value="01:30"></option><option value="02:00"></option><option value="02:30"></option><option value="03:00"></option><option value="03:30"></option><option value="04:00"></option><option value="04:30"></option><option value="05:00"></option><option value="05:30"></option><option value="06:00"></option><option value="06:30"></option><option value="07:00"></option><option value="07:30"></option><option value="08:00"></option><option value="08:30"></option><option value="09:00"></option><option value="09:30"></option><option value="10:00"></option><option value="10:30"></option><option value="11:00"></option><option value="11:30"></option><option value="12:00"></option><option value="12:30"></option><option value="13:00"></option><option value="13:30"></option><option value="14:00"></option><option value="14:30"></option><option value="15:00"></option><option value="15:30"></option><option value="16:00"></option><option value="16:30"></option><option value="17:00"></option><option value="17:30"></option><option value="18:00"></option><option value="18:30"></option><option value="19:00"></option><option value="19:30"></option><option value="20:00"></option><option value="20:30"></option><option value="21:00"></option><option value="21:30"></option><option value="22:00"></option><option value="22:30"></option><option value="23:00"></option><option value="23:30"></option>
-    </datalist>
+    <datalist id="hh-options"></datalist>
+    <datalist id="mm-options"></datalist>
+    <script>
+        const hhList = document.getElementById('hh-options');
+        for(let i=0; i<24; i++) {
+            hhList.innerHTML += `<option value="${String(i).padStart(2, '0')}"></option>`;
+        }
+        const mmList = document.getElementById('mm-options');
+        for(let i=0; i<60; i++) {
+            mmList.innerHTML += `<option value="${String(i).padStart(2, '0')}"></option>`;
+        }
+    </script>
 </body>
 
 </html>
