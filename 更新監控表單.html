@@ -859,9 +859,9 @@
                     const mm = val ? val.split(':')[1] : '';
                     td.innerHTML = `
                         <div style="display:flex; gap:2px; align-items:center; justify-content:center;">
-                            <input type="text" class="cell-input input-time-hh" value="${hh}" list="hh-options" placeholder="時" maxlength="2" style="width:2.2rem;text-align:center;padding:0.2rem;" onchange="if(this.value) this.value=this.value.padStart(2,'0')" title="00-23" pattern="^([0-1]?[0-9]|2[0-3])$">
+                            <input type="text" class="cell-input input-time-hh" value="${hh}" list="hh-options" placeholder="時" maxlength="2" style="width:3.5rem;text-align:center;padding:0.2rem;" onchange="if(this.value) this.value=this.value.padStart(2,'0')" onclick="this.select()" title="00-23" pattern="^([0-1]?[0-9]|2[0-3])$">
                             <span>:</span>
-                            <input type="text" class="cell-input input-time-mm" value="${mm}" list="mm-options" placeholder="分" maxlength="2" style="width:2.2rem;text-align:center;padding:0.2rem;" onchange="if(this.value) this.value=this.value.padStart(2,'0')" title="00-59" pattern="^[0-5][0-9]$">
+                            <input type="text" class="cell-input input-time-mm" value="${mm}" list="mm-options" placeholder="分" maxlength="2" style="width:3.5rem;text-align:center;padding:0.2rem;" onchange="if(this.value) this.value=this.value.padStart(2,'0')" onclick="this.select()" title="00-59" pattern="^[0-5][0-9]$">
                         </div>
                     `;
                 } else if (col === 'machineFlow') {
