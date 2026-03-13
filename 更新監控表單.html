@@ -634,19 +634,60 @@
         let currentPage = 1;
         const itemsPerPage = 50;
 
+        // Helper: fetch with timeout
+        async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(timer);
+                return response;
+            } catch (err) {
+                clearTimeout(timer);
+                throw err;
+            }
+        }
+
+        // Helper: load data with retry
+        async function loadData(retries = 2) {
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const response = await fetchWithTimeout(`${SCRIPT_URL}?t=${new Date().getTime()}`, {}, 30000);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const text = await response.text();
+                    const data = JSON.parse(text);
+                    if (Array.isArray(data)) return data;
+                    if (data && data.error) throw new Error(data.error);
+                    return [];
+                } catch (err) {
+                    console.warn(`第 ${i + 1} 次載入失敗:`, err.message);
+                    if (i < retries) {
+                        await new Promise(r => setTimeout(r, 2000)); // 等待 2 秒後重試
+                    } else {
+                        throw err;
+                    }
+                }
+            }
+        }
+
         // Initialize logic
         window.onload = async function () {
             document.getElementById('results-tbody').innerHTML = '<tr><td colspan="23" class="empty-state">資料載入中，請稍候...</td></tr>';
             try {
-                const response = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
-                allHistoricalRecords = await response.json();
+                allHistoricalRecords = await loadData(2);
             } catch (e) {
                 console.error("無法讀取資料庫資料:", e);
-                document.getElementById('results-tbody').innerHTML = '<tr><td colspan="23" class="empty-state" style="color:red;">讀取資料庫失敗，請重整畫面</td></tr>';
+                document.getElementById('results-tbody').innerHTML =
+                    `<tr><td colspan="23" class="empty-state" style="color:red;">
+                        ⚠️ 讀取資料庫失敗（${e.message || '網路逾時'}），
+                        <a href="javascript:location.reload()" style="color:#4f46e5;font-weight:bold;">請點此重整頁面</a>
+                    </td></tr>`;
+                // 仍然執行搜尋（顯示空結果）
+                document.getElementById('btn-search').click();
+                return;
             }
 
-            // By default initially, show all but sorted correctly
-            // We need to trigger the search flow so pagination resets properly
+            // 觸發查詢以正確渲染結果
             document.getElementById('btn-search').click();
         };
 
