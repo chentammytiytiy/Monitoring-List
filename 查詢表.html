@@ -594,7 +594,7 @@
         window.onload = async function () {
             document.getElementById('results-tbody').innerHTML = '<tr><td colspan="23" class="empty-state">資料載入中，請稍候...</td></tr>';
             try {
-                const response = await fetch(SCRIPT_URL);
+                const response = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
                 allHistoricalRecords = await response.json();
             } catch (e) {
                 console.error("無法讀取資料庫資料:", e);

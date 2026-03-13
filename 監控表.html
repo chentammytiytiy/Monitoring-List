@@ -1004,7 +1004,7 @@
                 btn.textContent = '資料傳送中...';
                 
 				let history = [];
-                const res = await fetch(SCRIPT_URL);
+                const res = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
                 const data = await res.json();
                 if (data && Array.isArray(data)) history = data;
 
@@ -1023,6 +1023,9 @@
                 
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
                     body: JSON.stringify(history)
                 });
                 

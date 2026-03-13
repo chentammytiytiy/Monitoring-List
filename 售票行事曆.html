@@ -390,7 +390,7 @@
             document.getElementById('calendar').innerHTML = '<div style="text-align:center; padding:3rem; color:var(--text-muted);">資料載入中，請稍候...</div>';
 
             try {
-                const response = await fetch(SCRIPT_URL);
+                const response = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
                 allHistoricalRecords = await response.json();
                 document.getElementById('calendar').innerHTML = ''; // clear loading text
             } catch (e) {
