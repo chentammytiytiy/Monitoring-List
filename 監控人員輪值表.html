@@ -591,7 +591,6 @@
             <table id="results-table">
                 <thead>
                     <tr>
-                        <th>申請時間</th>
                         <th>開賣日期</th>
                         <th>時間</th>
                         <th>售票/核銷</th>
@@ -880,7 +879,6 @@
 
                 html += `
 					<tr data-index="${origIdx}">
-						<td class="apply-time">${r['申請時間'] || '-'}</td>
 						<td class="col-saleDate" style="${c('開賣日期')}">${r['開賣日期'] ? `${r['開賣日期']} (${r['星期'] || ''})` : '-'}</td>
 						<td class="col-time" style="${c('時間')}">${r['時間'] || '-'}</td>
 						<td class="col-action" style="${c('售票/核銷')}">${r['售票/核銷'] || '-'}</td>
@@ -917,18 +915,18 @@
                 const table = document.getElementById('results-table');
                 if (!table) return;
                 const ths = table.querySelectorAll('thead th');
-                if (ths.length < 5) return;
+                if (ths.length < 4) return;
                 
                 let leftOffsets = [];
                 let currentLeft = 0;
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 4; i++) {
                     leftOffsets.push(currentLeft);
                     currentLeft += ths[i].offsetWidth;
                 }
                 
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 4; i++) {
                     ths[i].classList.add('sticky-col');
-                    if (i === 4) ths[i].classList.add('sticky-col-last');
+                    if (i === 3) ths[i].classList.add('sticky-col-last');
                     ths[i].style.left = leftOffsets[i] + 'px';
                 }
                 
@@ -936,10 +934,10 @@
                 trs.forEach(tr => {
                     const tds = tr.querySelectorAll('td');
                     if (tds.length === 1) return; // empty state
-                    for (let i = 0; i < 5; i++) {
+                    for (let i = 0; i < 4; i++) {
                         if (!tds[i]) continue;
                         tds[i].classList.add('sticky-col');
-                        if (i === 4) tds[i].classList.add('sticky-col-last');
+                        if (i === 3) tds[i].classList.add('sticky-col-last');
                         tds[i].style.left = leftOffsets[i] + 'px';
                     }
                 });
