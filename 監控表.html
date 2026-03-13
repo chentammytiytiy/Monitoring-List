@@ -726,6 +726,46 @@
 		let recordsList = [];
 		let editIndex = -1;
 
+		// ====================================================
+		// 使用隱藏 iframe 表單提交 POST 資料到 GAS
+		// 表單提交天生繞過 CORS，是跨域寫入最可靠的方式
+		// ====================================================
+		function postToGAS(data) {
+			return new Promise((resolve) => {
+				const iframeId = 'gas_iframe_' + Date.now();
+
+				// 建立隱藏 iframe
+				const iframe = document.createElement('iframe');
+				iframe.name = iframeId;
+				iframe.style.display = 'none';
+				document.body.appendChild(iframe);
+
+				// 建立表單
+				const form = document.createElement('form');
+				form.method = 'POST';
+				form.action = SCRIPT_URL;
+				form.target = iframeId;
+				form.style.display = 'none';
+
+				// 將資料放入隱藏欄位
+				const input = document.createElement('input');
+				input.type = 'hidden';
+				input.name = 'data';
+				input.value = JSON.stringify(data);
+				form.appendChild(input);
+
+				document.body.appendChild(form);
+				form.submit();
+				document.body.removeChild(form);
+
+				// 等待 GAS 處理（3 秒後視為完成）
+				setTimeout(() => {
+					if (iframe.parentNode) document.body.removeChild(iframe);
+					resolve();
+				}, 3000);
+			});
+		}
+
 		// Form reset helper
 		function resetFormHelper() {
 			document.getElementById('monitorForm').reset();
@@ -1024,13 +1064,8 @@
 					}
 				});
 
-                // 使用 mode:'no-cors' 確保跨域 POST body 能送達 GAS
-                // (no-cors 下 response 是 opaque，無法讀取，但資料確實會送出)
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(history)
-                });
+                // 使用隱藏 iframe 表單提交（完全繞過 CORS，最可靠方式）
+                await postToGAS(history);
 
                 btn.innerHTML = origText;
 			} catch (e) {

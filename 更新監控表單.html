@@ -634,6 +634,40 @@
         let currentPage = 1;
         const itemsPerPage = 50;
 
+        // ====================================================
+        // 使用隱藏 iframe 表單提交 POST 資料到 GAS（完全繞過 CORS）
+        // ====================================================
+        function postToGAS(data) {
+            return new Promise((resolve) => {
+                const iframeId = 'gas_iframe_' + Date.now();
+                const iframe = document.createElement('iframe');
+                iframe.name = iframeId;
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = SCRIPT_URL;
+                form.target = iframeId;
+                form.style.display = 'none';
+
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'data';
+                input.value = JSON.stringify(data);
+                form.appendChild(input);
+
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+
+                setTimeout(() => {
+                    if (iframe.parentNode) document.body.removeChild(iframe);
+                    resolve();
+                }, 3000);
+            });
+        }
+
         // Helper: fetch with timeout
         async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {
             const controller = new AbortController();
@@ -1050,12 +1084,8 @@
 
             try {
                 btn.textContent = '儲存中...';
-                // 使用 mode:'no-cors' 確保跨域 POST body 能送達 GAS
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(allHistoricalRecords)
-                });
+                // 使用隱藏 iframe 表單提交（完全繞過 CORS）
+                await postToGAS(allHistoricalRecords);
             } catch (e) {
                 alert('資料庫更新失敗！');
                 btn.textContent = '儲存';
@@ -1080,12 +1110,8 @@
                 allHistoricalRecords.splice(idx, 1);
                 
                 try {
-                    // 使用 mode:'no-cors' 確保跨域 POST body 能送達 GAS
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        body: JSON.stringify(allHistoricalRecords)
-                    });
+                    // 使用隱藏 iframe 表單提交（完全繞過 CORS）
+                    await postToGAS(allHistoricalRecords);
                     // Re-render to update the display
                     document.getElementById('btn-search').click();
                 } catch (e) {
