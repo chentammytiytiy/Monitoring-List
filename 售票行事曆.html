@@ -381,17 +381,22 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/zh-tw.js"></script>
     <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlVEL8SwA5hy28n2-6TgQGG1cd0rhG81azxr4nlUwy-c6lqtODZHrwI5yeOOAfb5vC7A/exec';
         let allHistoricalRecords = [];
         let calendar;
 
-        window.onload = function () {
+        window.onload = async function () {
+            // Show loading placeholder initially
+            document.getElementById('calendar').innerHTML = '<div style="text-align:center; padding:3rem; color:var(--text-muted);">資料載入中，請稍候...</div>';
+
             try {
-                const data = localStorage.getItem('appliedMonitorRecords');
-                if (data) {
-                    allHistoricalRecords = JSON.parse(data);
-                }
+                const response = await fetch(SCRIPT_URL);
+                allHistoricalRecords = await response.json();
+                document.getElementById('calendar').innerHTML = ''; // clear loading text
             } catch (e) {
-                console.error("無法讀取歷史資料:", e);
+                console.error("無法讀取資料庫資料:", e);
+                document.getElementById('calendar').innerHTML = '<div style="text-align:center; padding:3rem; color:red;">讀取資料失敗，請重新整理頁面。</div>';
+                return;
             }
 
             // Setup year dropdown

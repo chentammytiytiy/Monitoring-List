@@ -628,20 +628,21 @@
     </div>
 
     <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlVEL8SwA5hy28n2-6TgQGG1cd0rhG81azxr4nlUwy-c6lqtODZHrwI5yeOOAfb5vC7A/exec';
         let allHistoricalRecords = [];
         let currentFilteredRecords = []; // Keep track of the currently displayed records for Excel export
         let currentPage = 1;
         const itemsPerPage = 50;
 
         // Initialize logic
-        window.onload = function () {
+        window.onload = async function () {
+            document.getElementById('results-tbody').innerHTML = '<tr><td colspan="23" class="empty-state">資料載入中，請稍候...</td></tr>';
             try {
-                const data = localStorage.getItem('appliedMonitorRecords');
-                if (data) {
-                    allHistoricalRecords = JSON.parse(data);
-                }
+                const response = await fetch(SCRIPT_URL);
+                allHistoricalRecords = await response.json();
             } catch (e) {
-                console.error("無法讀取歷史資料:", e);
+                console.error("無法讀取資料庫資料:", e);
+                document.getElementById('results-tbody').innerHTML = '<tr><td colspan="23" class="empty-state" style="color:red;">讀取資料庫失敗，請重整畫面</td></tr>';
             }
 
             // By default initially, show all but sorted correctly
@@ -941,7 +942,7 @@
             });
         }
 
-        function saveRow(btn, idx) {
+        async function saveRow(btn, idx) {
             const tr = btn.closest('tr');
 
             // Read values back
@@ -1006,8 +1007,17 @@
             record._modified = mods;
             record['申請時間'] = new Date().toLocaleString('zh-TW') + ' (已更新)';
 
-            // Save to local storage
-            localStorage.setItem('appliedMonitorRecords', JSON.stringify(allHistoricalRecords));
+            try {
+                btn.textContent = '儲存中...';
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(allHistoricalRecords)
+                });
+            } catch (e) {
+                alert('資料庫更新失敗！');
+                btn.textContent = '儲存';
+                return;
+            }
 
             // Resend Email with the updated single record (to notify the update)
             sendUpdateEmailNotification([record]);
@@ -1017,13 +1027,27 @@
             alert('已成功更新資料，並產生更新的 Outlook Email 通知。\\n請查看下載檔案或彈出的 Outlook 視窗。');
         }
 
-        function deleteRow(btn, idx) {
+        async function deleteRow(btn, idx) {
             if (confirm('確定要刪除這筆資料嗎？此操作無法還原。')) {
+                const tr = btn.closest('tr');
+                const rowContentBackup = tr.innerHTML;
+                tr.innerHTML = '<td colspan="23" class="empty-state">刪除中...</td>';
+
+                const backupRecords = [...allHistoricalRecords];
                 allHistoricalRecords.splice(idx, 1);
-                localStorage.setItem('appliedMonitorRecords', JSON.stringify(allHistoricalRecords));
                 
-                // Re-render to update the display
-                document.getElementById('btn-search').click();
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(allHistoricalRecords)
+                    });
+                    // Re-render to update the display
+                    document.getElementById('btn-search').click();
+                } catch (e) {
+                    alert('資料庫刪除失敗！');
+                    allHistoricalRecords = backupRecords;
+                    document.getElementById('btn-search').click();
+                }
             }
         }
 
