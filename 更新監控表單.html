@@ -1050,11 +1050,10 @@
 
             try {
                 btn.textContent = '儲存中...';
+                // 使用 mode:'no-cors' 確保跨域 POST body 能送達 GAS
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8'
-                    },
+                    mode: 'no-cors',
                     body: JSON.stringify(allHistoricalRecords)
                 });
             } catch (e) {
@@ -1081,11 +1080,10 @@
                 allHistoricalRecords.splice(idx, 1);
                 
                 try {
+                    // 使用 mode:'no-cors' 確保跨域 POST body 能送達 GAS
                     await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/plain;charset=utf-8'
-                        },
+                        mode: 'no-cors',
                         body: JSON.stringify(allHistoricalRecords)
                     });
                     // Re-render to update the display

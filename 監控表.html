@@ -1002,14 +1002,17 @@
                 const btn = document.getElementById('btn-submit-all');
                 const origText = btn.innerHTML;
                 btn.textContent = '資料傳送中...';
-                
+
 				let history = [];
-                const res = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
-                const data = await res.json();
-                if (data && Array.isArray(data)) history = data;
+                try {
+                    const res = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
+                    const data = await res.json();
+                    if (data && Array.isArray(data)) history = data;
+                } catch(fetchErr) {
+                    console.warn('讀取現有資料失敗，將只儲存本次新增資料:', fetchErr);
+                }
 
 				// Append current batch to history
-				// We also add a timestamp to know when it was applied
 				const applyTime = new Date().toLocaleString('zh-TW');
 				sortedRecords.forEach(r => {
 					r['申請時間'] = applyTime;
@@ -1020,15 +1023,15 @@
 						history.push(r);
 					}
 				});
-                
+
+                // 使用 mode:'no-cors' 確保跨域 POST body 能送達 GAS
+                // (no-cors 下 response 是 opaque，無法讀取，但資料確實會送出)
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8'
-                    },
+                    mode: 'no-cors',
                     body: JSON.stringify(history)
                 });
-                
+
                 btn.innerHTML = origText;
 			} catch (e) {
 				console.error('Database save failed', e);
