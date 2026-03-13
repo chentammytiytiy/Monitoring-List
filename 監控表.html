@@ -723,6 +723,7 @@
 			locale: "zh_tw"
 		});
 
+		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGp-_U62GmXQyY-wowzvj_SqhOwrWyWtgzqpWI0LD3p0k_g6WOZ2t29s7-bANu_SDe_A/exec';
 		let recordsList = [];
 		let editIndex = -1;
 
@@ -740,7 +741,7 @@
 				iframe.style.display = 'none';
 				document.body.appendChild(iframe);
 
-				// 建立表單
+				// 建立表單（使用全域的 SCRIPT_URL）
 				const form = document.createElement('form');
 				form.method = 'POST';
 				form.action = SCRIPT_URL;
@@ -936,7 +937,6 @@
 
 		// Submit All -> Send Email
 		document.getElementById('btn-submit-all').addEventListener('click', async function () {
-            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGp-_U62GmXQyY-wowzvj_SqhOwrWyWtgzqpWI0LD3p0k_g6WOZ2t29s7-bANu_SDe_A/exec';
 			if (recordsList.length === 0) return;
 
 			let mailBody = '以下為監控申請內容：\n\n';
