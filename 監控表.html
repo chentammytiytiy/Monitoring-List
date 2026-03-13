@@ -880,8 +880,10 @@
 			record['其它單位監控'] = otherMonitor === '' ? '(無)' : otherMonitor;
 
 			if (editIndex > -1) {
+                record._id = recordsList[editIndex]._id;
 				recordsList[editIndex] = record;
 			} else {
+                record._id = Date.now() + Math.random().toString(36).substr(2, 9);
 				recordsList.push(record);
 			}
 
@@ -933,7 +935,7 @@
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['機台流管']}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['可售張數']}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['其它單位監控']}</td>
-						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['特別說明']}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: left; white-space: pre-wrap; padding:4px; max-width:200px;">${record['特別說明']}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['負責業務']}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['建檔OP']}</td>
 					</tr>
@@ -1000,8 +1002,15 @@
 				// Append current batch to history
 				// We also add a timestamp to know when it was applied
 				const applyTime = new Date().toLocaleString('zh-TW');
-				const recordsToSave = sortedRecords.map(r => ({ ...r, '申請時間': applyTime }));
-				history = history.concat(recordsToSave);
+				sortedRecords.forEach(r => {
+					r['申請時間'] = applyTime;
+					const existingIdx = history.findIndex(h => h._id && h._id === r._id);
+					if (existingIdx !== -1) {
+						history[existingIdx] = r;
+					} else {
+						history.push(r);
+					}
+				});
 				localStorage.setItem('appliedMonitorRecords', JSON.stringify(history));
 			} catch (e) {
 				console.error('LocalStorage save failed', e);
@@ -1096,7 +1105,7 @@ ${mailHtmlBody}
 						<td class="td-data">${r['機台流管']}</td>
 						<td class="td-data">${r['可售張數']}</td>
 						<td class="td-data">${r['其它單位監控']}</td>
-						<td class="td-data">${r['特別說明']}</td>
+						<td class="td-data" style="white-space: pre-wrap; text-align: left; max-width: 250px;">${r['特別說明']}</td>
 						<td class="td-data">${r['負責業務']}</td>
 						<td class="td-data">${r['建檔OP']}</td>
 					</tr>

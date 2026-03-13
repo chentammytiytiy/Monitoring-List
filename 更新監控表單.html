@@ -319,6 +319,13 @@
             max-width: 15rem;
         }
 
+        td.col-note {
+            white-space: pre-wrap;
+            word-break: break-all;
+            min-width: 15rem;
+            max-width: 15rem;
+        }
+
         td.col-saleDate {
             white-space: nowrap;
             min-width: 140px;
@@ -926,6 +933,8 @@
                     `;
                 } else if (col === 'machineFlow') {
                     td.innerHTML = `<input type="number" class="cell-input input-${col}" value="${val}">`;
+                } else if (col === 'note') {
+                    td.innerHTML = `<textarea class="cell-input input-${col}" rows="3" style="width:100%;resize:vertical;">${val}</textarea>`;
                 } else {
                     td.innerHTML = `<input type="text" class="cell-input input-${col}" value="${val}">`;
                 }
