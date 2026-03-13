@@ -351,6 +351,25 @@
             font-size: 1.1rem;
         }
 
+        .sticky-col {
+            position: sticky;
+            z-index: 10;
+        }
+        thead th.sticky-col {
+            background: #f1f5f9;
+            z-index: 11;
+        }
+        tbody td.sticky-col {
+            background: #fff;
+        }
+        tbody tr:hover td.sticky-col {
+            background: #f8fafc;
+        }
+        .sticky-col-last {
+            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+            border-right: 1px solid var(--border-color) !important;
+        }
+
         #result-count {
             margin-bottom: 1rem;
             font-size: 0.95rem;
@@ -884,6 +903,41 @@
 
             tbody.innerHTML = html;
             renderPaginationControls(dataArray.length);
+            applyStickyColumns();
+        }
+
+        function applyStickyColumns() {
+            setTimeout(() => {
+                const table = document.getElementById('results-table');
+                if (!table) return;
+                const ths = table.querySelectorAll('thead th');
+                if (ths.length < 5) return;
+                
+                let leftOffsets = [];
+                let currentLeft = 0;
+                for (let i = 0; i < 5; i++) {
+                    leftOffsets.push(currentLeft);
+                    currentLeft += ths[i].offsetWidth;
+                }
+                
+                for (let i = 0; i < 5; i++) {
+                    ths[i].classList.add('sticky-col');
+                    if (i === 4) ths[i].classList.add('sticky-col-last');
+                    ths[i].style.left = leftOffsets[i] + 'px';
+                }
+                
+                const trs = table.querySelectorAll('tbody tr');
+                trs.forEach(tr => {
+                    const tds = tr.querySelectorAll('td');
+                    if (tds.length === 1) return; // empty state
+                    for (let i = 0; i < 5; i++) {
+                        if (!tds[i]) continue;
+                        tds[i].classList.add('sticky-col');
+                        if (i === 4) tds[i].classList.add('sticky-col-last');
+                        tds[i].style.left = leftOffsets[i] + 'px';
+                    }
+                });
+            }, 0);
         }
 
         document.getElementById('btn-save-all').addEventListener('click', function () {
