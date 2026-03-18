@@ -628,44 +628,37 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGp-_U62GmXQyY-wowzvj_SqhOwrWyWtgzqpWI0LD3p0k_g6WOZ2t29s7-bANu_SDe_A/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlVEL8SwA5hy28n2-6TgQGG1cd0rhG81azxr4nlUwy-c6lqtODZHrwI5yeOOAfb5vC7A/exec';
         let allHistoricalRecords = [];
         let currentFilteredRecords = []; // Keep track of the currently displayed records for Excel export
         let currentPage = 1;
         const itemsPerPage = 50;
 
         // ====================================================
-        // 使用隱藏 iframe 表單提交 POST 資料到 GAS（完全繞過 CORS）
+        // 使用 POST 請求 + JSON Body 寫入 GAS（解決 URL 長度限制）
+        // 整批覆蓋 mode：action='save'
         // ====================================================
-        function postToGAS(data) {
-            return new Promise((resolve) => {
-                const iframeId = 'gas_iframe_' + Date.now();
-                const iframe = document.createElement('iframe');
-                iframe.name = iframeId;
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = SCRIPT_URL;
-                form.target = iframeId;
-                form.style.display = 'none';
-
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'data';
-                input.value = JSON.stringify(data);
-                form.appendChild(input);
-
-                document.body.appendChild(form);
-                form.submit();
-                document.body.removeChild(form);
-
-                setTimeout(() => {
-                    if (iframe.parentNode) document.body.removeChild(iframe);
-                    resolve();
-                }, 3000);
-            });
+        async function saveToGAS(data) {
+            const payload = JSON.stringify({ action: 'save', data });
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: payload,
+                    headers: { 'Content-Type': 'text/plain' }
+                });
+                const text = await response.text();
+                try { return JSON.parse(text); } catch(e) { return { success: true, raw: text }; }
+            } catch (err) {
+                // 備用：GET 方式（資料較小時可用）
+                console.warn('POST 失敗，嘗試 GET 備用:', err.message);
+                const jsonStr = JSON.stringify(data);
+                if (jsonStr.length < 6000) {
+                    const url = `${SCRIPT_URL}?action=save&data=${encodeURIComponent(jsonStr)}`;
+                    const r = await fetch(url);
+                    return await r.json();
+                }
+                throw err;
+            }
         }
 
         // Helper: fetch with timeout
@@ -1084,10 +1077,10 @@
 
             try {
                 btn.textContent = '儲存中...';
-                // 使用隱藏 iframe 表單提交（完全繞過 CORS）
-                await postToGAS(allHistoricalRecords);
+                const result = await saveToGAS(allHistoricalRecords);
+                console.log('儲存結果:', result);
             } catch (e) {
-                alert('資料庫更新失敗！');
+                alert('資料庫更新失敗：' + e.message);
                 btn.textContent = '儲存';
                 return;
             }
@@ -1110,12 +1103,11 @@
                 allHistoricalRecords.splice(idx, 1);
                 
                 try {
-                    // 使用隱藏 iframe 表單提交（完全繞過 CORS）
-                    await postToGAS(allHistoricalRecords);
-                    // Re-render to update the display
+                    const result = await saveToGAS(allHistoricalRecords);
+                    console.log('刪除儲存結果:', result);
                     document.getElementById('btn-search').click();
                 } catch (e) {
-                    alert('資料庫刪除失敗！');
+                    alert('資料庫刪除失敗：' + e.message);
                     allHistoricalRecords = backupRecords;
                     document.getElementById('btn-search').click();
                 }

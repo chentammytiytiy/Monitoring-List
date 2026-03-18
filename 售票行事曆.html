@@ -281,6 +281,7 @@
             font-size: 0.8rem;
             padding: 2px 4px;
         }
+
         .fc-event {
             border-radius: 4px;
             margin-bottom: 2px;
@@ -296,25 +297,48 @@
         <ul class="sidebar-menu">
             <li>
                 <a href="監控表.html">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
                     監控申請表單
                 </a>
             </li>
             <li>
                 <a href="更新監控表單.html">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
                     查詢及更新監控表單
                 </a>
             </li>
             <li>
                 <a href="監控人員輪值表.html">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
                     監控人員輪值表
                 </a>
             </li>
             <li>
                 <a href="售票行事曆.html" class="active">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
                     售票行事曆
                 </a>
             </li>
@@ -323,59 +347,63 @@
 
     <div class="main-content">
         <div class="container">
-        <div class="header-row">
-            <h1>售票行事曆</h1>
-            <div style="display:flex; gap: 0.5rem;">
-                <button type="button" class="nav-link" id="btn-export-excel" style="border:none; cursor:pointer;"
-                    disabled>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    匯出 Excel
-                </button>
+            <div class="header-row">
+                <h1>售票行事曆</h1>
+                <div style="display:flex; gap: 0.5rem;">
+                    <button type="button" class="nav-link" id="btn-export-excel" style="border:none; cursor:pointer;"
+                        disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        匯出 Excel
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <div class="search-grid">
-            <div class="form-group">
-                <label for="search-year">查詢年度</label>
-                <select id="search-year">
-                    <!-- Years will be populated by JS -->
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="search-month">查詢月份</label>
-                <select id="search-month">
-                    <option value="">全部月份</option>
-                    <option value="01">1月</option>
-                    <option value="02">2月</option>
-                    <option value="03">3月</option>
-                    <option value="04">4月</option>
-                    <option value="05">5月</option>
-                    <option value="06">6月</option>
-                    <option value="07">7月</option>
-                    <option value="08">8月</option>
-                    <option value="09">9月</option>
-                    <option value="10">10月</option>
-                    <option value="11">11月</option>
-                    <option value="12">12月</option>
-                </select>
-            </div>
-            
-            <div class="search-btn-container">
-                <button type="button" class="btn-search" id="btn-search">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    查詢
-                </button>
-            </div>
-        </div>
+            <div class="search-grid">
+                <div class="form-group">
+                    <label for="search-year">查詢年度</label>
+                    <select id="search-year">
+                        <!-- Years will be populated by JS -->
+                    </select>
+                </div>
 
-        <div id="calendar" style="height: 600px; margin-top: 1rem;"></div>
-    </div>
+                <div class="form-group">
+                    <label for="search-month">查詢月份</label>
+                    <select id="search-month">
+                        <option value="">全部月份</option>
+                        <option value="01">1月</option>
+                        <option value="02">2月</option>
+                        <option value="03">3月</option>
+                        <option value="04">4月</option>
+                        <option value="05">5月</option>
+                        <option value="06">6月</option>
+                        <option value="07">7月</option>
+                        <option value="08">8月</option>
+                        <option value="09">9月</option>
+                        <option value="10">10月</option>
+                        <option value="11">11月</option>
+                        <option value="12">12月</option>
+                    </select>
+                </div>
+
+                <div class="search-btn-container">
+                    <button type="button" class="btn-search" id="btn-search">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        查詢
+                    </button>
+                </div>
+            </div>
+
+            <div id="calendar" style="height: 600px; margin-top: 1rem;"></div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
@@ -426,10 +454,10 @@
                     right: 'dayGridMonth,timeGridWeek,listYear'
                 },
                 initialDate: new Date(currentYear, 0, 1),
-                eventContent: function(arg) {
+                eventContent: function (arg) {
                     let titleHtml = `<div style="font-weight:bold; color:var(--primary); line-height: 1.4; font-size: 0.85rem; word-break: break-all; white-space: normal;">${arg.timeText} ${arg.event.title}</div>`;
                     let propsText = '';
-                    
+
                     const props = arg.event.extendedProps;
                     let labels = [];
                     if (props.pm && props.pm !== 'X') labels.push(`PM:${props.pm}`);
@@ -438,11 +466,11 @@
                     if (props.itD && props.itD !== 'X') labels.push(`D:${props.itD}`);
                     if (props.itQ && props.itQ !== 'X') labels.push(`Q:${props.itQ}`);
                     if (props.itE && props.itE !== 'X') labels.push(`E:${props.itE}`);
-                    
+
                     if (labels.length > 0) {
                         propsText = `<div style="font-size: 0.75rem; color: #475569; margin-top: 4px; line-height: 1.3; white-space: normal; word-break: break-all;">${labels.join(' ')}</div>`;
                     }
-                    
+
                     return { html: `<div style="padding: 2px 4px; display: flex; flex-direction: column;">${titleHtml}${propsText}</div>` };
                 }
             });
@@ -454,7 +482,7 @@
         document.getElementById('btn-search').addEventListener('click', function () {
             const year = document.getElementById('search-year').value;
             const month = document.getElementById('search-month').value;
-            
+
             if (month) {
                 calendar.gotoDate(`${year}-${month}-01`);
             } else {
@@ -464,7 +492,7 @@
             const filtered = allHistoricalRecords.filter(r => {
                 const dateStr = r['開賣日期'] || '';
                 const isTicketSale = r['售票/核銷'] === '售票';
-                
+
                 let matchesDate = false;
                 if (month) {
                     // Check for both YYYY/MM and YYYY-MM
@@ -472,7 +500,7 @@
                 } else {
                     matchesDate = dateStr.startsWith(year);
                 }
-                
+
                 return matchesDate && isTicketSale;
             });
 
@@ -480,7 +508,7 @@
             const events = filtered.map(r => {
                 let dateStr = r['開賣日期'].replace(/\//g, '-');
                 let timeStr = (r['時間'] && r['時間'] !== '(無)') ? r['時間'] : '';
-                
+
                 // Parse time if it's there
                 let hr = '00', min = '00';
                 if (timeStr) {
@@ -497,7 +525,7 @@
                 }
 
                 let dt = dateStr + (timeStr ? 'T' + hr + ':' + min + ':00' : '');
-                
+
                 return {
                     title: r['活動名稱'] || r['A節目代碼/E活動分類'] || '未命名活動',
                     start: dt,

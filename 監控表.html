@@ -723,48 +723,36 @@
 			locale: "zh_tw"
 		});
 
-		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGp-_U62GmXQyY-wowzvj_SqhOwrWyWtgzqpWI0LD3p0k_g6WOZ2t29s7-bANu_SDe_A/exec';
+		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlVEL8SwA5hy28n2-6TgQGG1cd0rhG81azxr4nlUwy-c6lqtODZHrwI5yeOOAfb5vC7A/exec';
 		let recordsList = [];
 		let editIndex = -1;
 
 		// ====================================================
-		// 使用隱藏 iframe 表單提交 POST 資料到 GAS
-		// 表單提交天生繞過 CORS，是跨域寫入最可靠的方式
+		// 使用 POST 請求 + JSON Body 寫入 GAS（解決 URL 長度限制）
+		// action='append'：只傳新增資料，GAS 在後端讀取並合併
+		// action='save'：整批覆蓋（用於更新/刪除）
 		// ====================================================
-		function postToGAS(data) {
-			return new Promise((resolve) => {
-				const iframeId = 'gas_iframe_' + Date.now();
-
-				// 建立隱藏 iframe
-				const iframe = document.createElement('iframe');
-				iframe.name = iframeId;
-				iframe.style.display = 'none';
-				document.body.appendChild(iframe);
-
-				// 建立表單（使用全域的 SCRIPT_URL）
-				const form = document.createElement('form');
-				form.method = 'POST';
-				form.action = SCRIPT_URL;
-				form.target = iframeId;
-				form.style.display = 'none';
-
-				// 將資料放入隱藏欄位
-				const input = document.createElement('input');
-				input.type = 'hidden';
-				input.name = 'data';
-				input.value = JSON.stringify(data);
-				form.appendChild(input);
-
-				document.body.appendChild(form);
-				form.submit();
-				document.body.removeChild(form);
-
-				// 等待 GAS 處理（3 秒後視為完成）
-				setTimeout(() => {
-					if (iframe.parentNode) document.body.removeChild(iframe);
-					resolve();
-				}, 3000);
-			});
+		async function saveToGAS(data, action = 'save') {
+			const payload = JSON.stringify({ action, data });
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: payload,
+					headers: { 'Content-Type': 'text/plain' } // GAS 較易接受 text/plain
+				});
+				const text = await response.text();
+				try { return JSON.parse(text); } catch(e) { return { success: true, raw: text }; }
+			} catch (err) {
+				// 備用：GET 方式（資料較小時可用）
+				console.warn('POST 失敗，嘗試 GET 備用:', err.message);
+				if (action === 'append' && Array.isArray(data) && data.length <= 5) {
+					const jsonStr = JSON.stringify(data);
+					const url = `${SCRIPT_URL}?action=save&data=${encodeURIComponent(jsonStr)}`;
+					const r = await fetch(url);
+					return await r.json();
+				}
+				throw err;
+			}
 		}
 
 		// Form reset helper
@@ -1037,40 +1025,27 @@
 			document.getElementById('multi-records-container').style.display = 'none';
 			document.getElementById('result-container').style.display = 'block';
 
-			// Save to database
+			// Save to database — 使用 append 模式，只傳本次新增資料
+			const btn = document.getElementById('btn-submit-all');
+			const origText = btn.innerHTML;
+			btn.textContent = '資料傳送中...';
 			try {
-                const btn = document.getElementById('btn-submit-all');
-                const origText = btn.innerHTML;
-                btn.textContent = '資料傳送中...';
-
-				let history = [];
-                try {
-                    const res = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
-                    const data = await res.json();
-                    if (data && Array.isArray(data)) history = data;
-                } catch(fetchErr) {
-                    console.warn('讀取現有資料失敗，將只儲存本次新增資料:', fetchErr);
-                }
-
-				// Append current batch to history
 				const applyTime = new Date().toLocaleString('zh-TW');
 				sortedRecords.forEach(r => {
 					r['申請時間'] = applyTime;
-					const existingIdx = history.findIndex(h => h._id && h._id === r._id);
-					if (existingIdx !== -1) {
-						history[existingIdx] = r;
-					} else {
-						history.push(r);
-					}
 				});
 
-                // 使用隱藏 iframe 表單提交（完全繞過 CORS，最可靠方式）
-                await postToGAS(history);
-
-                btn.innerHTML = origText;
+				// append 模式：只傳新資料，GAS 後端負責讀取並合併
+				const saveResult = await saveToGAS(sortedRecords, 'append');
+				console.log('GAS 儲存結果:', saveResult);
+				if (saveResult && saveResult.error) {
+					throw new Error(saveResult.error);
+				}
+				btn.innerHTML = origText;
 			} catch (e) {
 				console.error('Database save failed', e);
-                alert("資料庫更新失敗，請檢查網路連線或稍後再試。");
+				alert('資料庫更新失敗：' + e.message + '\n請稍後重試，您的表單資料仍保留在頁面上。');
+				btn.innerHTML = origText;
 			}
 
 			// Try to open Outlook explicitly (IE/Edge IE mode)
