@@ -470,6 +470,51 @@
 				justify-content: center;
 			}
 		}
+
+		/* ── 必填驗證樣式 ── */
+		.input-error {
+			border-color: #f43f5e !important;
+			box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2) !important;
+			background: #fff5f7 !important;
+		}
+
+		.field-error-msg {
+			color: #f43f5e;
+			font-size: 0.8rem;
+			margin-top: 0.4rem;
+			display: flex;
+			align-items: center;
+			gap: 0.35rem;
+			animation: fadeIn 0.3s ease;
+		}
+
+		.validation-banner {
+			background: linear-gradient(135deg, #fee2e2, #fecdd3);
+			border: 1px solid #fca5a5;
+			border-radius: 12px;
+			padding: 1rem 1.2rem;
+			margin-bottom: 1.5rem;
+			display: flex;
+			align-items: flex-start;
+			gap: 0.8rem;
+			color: #9f1239;
+			font-size: 0.9rem;
+			animation: slideIn 0.3s ease forwards;
+		}
+
+		.validation-banner svg {
+			flex-shrink: 0;
+			margin-top: 2px;
+		}
+
+		.validation-banner ul {
+			margin: 0.3rem 0 0 0;
+			padding-left: 1.2rem;
+		}
+
+		.validation-banner li {
+			margin: 0.2rem 0;
+		}
 	</style>
 </head>
 
@@ -589,8 +634,8 @@
 				</div>
 
 				<div class="form-group">
-					<label for="ticketCount">可售張數</label>
-					<input type="text" id="ticketCount" name="可售張數" placeholder="請輸入可售張數">
+					<label for="ticketCount">可售張數 <span style="color:#f472b6">*</span></label>
+					<input type="text" id="ticketCount" name="可售張數" placeholder="請輸入可售張數" required>
 				</div>
 
 				<div class="form-group">
@@ -720,10 +765,85 @@
 			enableTime: true,
 			dateFormat: "Y/m/d H:i",
 			time_24hr: true,
-			locale: "zh_tw"
+			locale: "zh_tw",
+			onChange: function() {
+				clearFieldError(document.getElementById('saleDateTime'));
+			}
 		});
 
 		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlVEL8SwA5hy28n2-6TgQGG1cd0rhG81azxr4nlUwy-c6lqtODZHrwI5yeOOAfb5vC7A/exec';
+
+		// ====================================================
+		// 必填欄位驗證
+		// ====================================================
+		const REQUIRED_FIELDS = [
+			{ id: 'saleDateTime',      label: '銷售日期時間' },
+			{ id: 'programCode',       label: 'A節目代碼 / E活動分類' },
+			{ id: 'eventName',         label: '活動名稱' },
+			{ id: 'ticketCount',       label: '可售張數' },
+			{ id: 'monitorPersonnel',  label: '負責業務' },
+		];
+
+		function clearFieldError(el) {
+			el.classList.remove('input-error');
+			const msg = el.parentNode.querySelector('.field-error-msg');
+			if (msg) msg.remove();
+			// 若所有欄位都已清除，移除頂部橫幅
+			if (!document.querySelector('.input-error')) {
+				const banner = document.getElementById('validation-banner');
+				if (banner) banner.remove();
+			}
+		}
+
+		function validateRequired() {
+			// 清除舊錯誤
+			document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+			document.querySelectorAll('.field-error-msg').forEach(el => el.remove());
+			const oldBanner = document.getElementById('validation-banner');
+			if (oldBanner) oldBanner.remove();
+
+			const missing = [];
+			REQUIRED_FIELDS.forEach(({ id, label }) => {
+				const el = document.getElementById(id);
+				if (!el || !el.value.trim()) {
+					missing.push(label);
+					if (el) {
+						el.classList.add('input-error');
+						const msg = document.createElement('div');
+						msg.className = 'field-error-msg';
+						msg.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> 此欄位為必填`;
+						el.parentNode.appendChild(msg);
+					}
+				}
+			});
+
+			if (missing.length > 0) {
+				const banner = document.createElement('div');
+				banner.id = 'validation-banner';
+				banner.className = 'validation-banner';
+				banner.innerHTML = `
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+					<div>
+						<strong>請填寫以下必填欄位（標示 * 者）：</strong>
+						<ul>${missing.map(m => `<li>${m}</li>`).join('')}</ul>
+					</div>
+				`;
+				const formGrid = document.querySelector('#monitorForm .form-grid');
+				formGrid.parentNode.insertBefore(banner, formGrid);
+				banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				return false;
+			}
+			return true;
+		}
+
+		// 輸入時即時移除單一欄位錯誤狀態
+		REQUIRED_FIELDS.forEach(({ id }) => {
+			const el = document.getElementById(id);
+			if (el) {
+				el.addEventListener('input', () => clearFieldError(el));
+				el.addEventListener('change', () => clearFieldError(el));
+			}
+		});
 		let recordsList = [];
 		let editIndex = -1;
 
@@ -877,6 +997,9 @@
 		// Form submission -> Save to global array -> Display list
 		document.getElementById('monitorForm').addEventListener('submit', function (e) {
 			e.preventDefault();
+
+			// ── 必填欄位驗證 ──
+			if (!validateRequired()) return;
 
 			const formData = new FormData(this);
 			const record = {};
