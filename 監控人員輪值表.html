@@ -40,6 +40,7 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            overflow-y: auto;
         }
 
         .sidebar-title {
@@ -60,6 +61,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.6rem;
+            flex: 1;
         }
 
         .sidebar-menu a {
@@ -84,6 +86,39 @@
             background: linear-gradient(135deg, var(--primary), #a855f7);
             color: white;
             box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 0.4rem 0;
+        }
+
+        .sidebar-logout a {
+            text-decoration: none;
+            color: #ef4444;
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar-logout a:hover {
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .sidebar-user {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 0.5rem 0.5rem 0;
+            line-height: 1.4;
         }
 
         .main-content {
@@ -516,7 +551,20 @@
                     售票行事曆
                 </a>
             </li>
+            <li id="li-admin-link" style="display:none;">
+                <a href="帳號管理.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><line x1="17" y1="11" x2="23" y2="11"></line><line x1="20" y1="8" x2="20" y2="14"></line></svg>
+                    帳號權限管理
+                </a>
+            </li>
         </ul>
+        <div class="sidebar-user" id="sidebar-user-info"></div>
+        <div class="sidebar-logout">
+            <a href="#" id="btn-logout">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                登出
+            </a>
+        </div>
     </div>
 
     <div class="main-content">
@@ -1089,6 +1137,40 @@
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
+        });
+        // ── 登入驗證 & 登出 ──
+        const SESSION_KEY = 'monitoring_system_session';
+        (function checkAuth() {
+            const s = sessionStorage.getItem(SESSION_KEY);
+            let session = null;
+            try { session = JSON.parse(s); } catch(e) {}
+            if (!session || !session.username) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // 頁面權限檢查
+            const pageName = '監控人員輪值表';
+            if (session.role !== 'admin' && session.permissions && !session.permissions.includes(pageName)) {
+                alert('您沒有權限存取此頁面！');
+                window.location.href = 'login.html'; 
+                return;
+            }
+
+            const infoEl = document.getElementById('sidebar-user-info');
+            if (infoEl) infoEl.textContent = session.name || session.username;
+            if (session.role === 'admin') {
+                const li = document.getElementById('li-admin-link');
+                if (li) li.style.display = '';
+            }
+        })();
+
+        document.getElementById('btn-logout').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('確定要登出嗎？')) {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.href = 'login.html';
+            }
         });
     </script>
 </body>
