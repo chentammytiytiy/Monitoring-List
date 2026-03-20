@@ -693,18 +693,32 @@
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: payload,
-                    headers: { 'Content-Type': 'text/plain' }
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    redirect: 'follow'
                 });
                 const text = await response.text();
-                try { return JSON.parse(text); } catch(e) { return { success: true, raw: text }; }
+                try { 
+                    const p = JSON.parse(text); 
+                    if (p.error) throw new Error(p.error);
+                    return p;
+                } catch(e) { 
+                    if (e.message !== "Unexpected token" && !e.message.startsWith("Unexpected")) {
+                        if (text.includes('"error"')) {
+                            throw new Error("Server returned an error but parsing failed: " + text.substring(0, 100));
+                        }
+                    }
+                    if (e.message && e.message.includes("error")) throw e;
+                    return { success: true, raw: text }; 
+                }
             } catch (err) {
-                // 備用：GET 方式（資料較小時可用）
                 console.warn('POST 失敗，嘗試 GET 備用:', err.message);
                 const jsonStr = JSON.stringify(data);
                 if (jsonStr.length < 6000) {
                     const url = `${SCRIPT_URL}?action=save&data=${encodeURIComponent(jsonStr)}`;
                     const r = await fetch(url);
-                    return await r.json();
+                    const resJson = await r.json();
+                    if (resJson.error) throw new Error(resJson.error);
+                    return resJson;
                 }
                 throw err;
             }
@@ -1201,6 +1215,7 @@
             try {
                 btn.textContent = '儲存中...';
                 const result = await saveToGAS(allHistoricalRecords);
+                if (result && result.error) throw new Error(result.error);
                 console.log('儲存結果:', result);
             } catch (e) {
                 alert('資料庫更新失敗：' + e.message);
@@ -1209,11 +1224,15 @@
             }
 
             // Resend Email with the updated single record (to notify the update)
-            sendUpdateEmailNotification([record]);
+            try {
+                sendUpdateEmailNotification([record]);
+            } catch (err) {
+                console.error("發送信件失敗:", err);
+            }
 
             // Re-render
+            alert('已成功更新資料，現在將重新整理頁面。');
             document.getElementById('btn-search').click();
-            alert('已成功更新資料，並產生更新的 Outlook Email 通知。\\n請查看下載檔案或彈出的 Outlook 視窗。');
         }
 
         async function deleteRow(btn, idx) {
@@ -1227,6 +1246,7 @@
                 
                 try {
                     const result = await saveToGAS(allHistoricalRecords);
+                    if (result && result.error) throw new Error(result.error);
                     console.log('刪除儲存結果:', result);
                     document.getElementById('btn-search').click();
                 } catch (e) {
