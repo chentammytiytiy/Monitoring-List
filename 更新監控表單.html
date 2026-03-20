@@ -688,13 +688,12 @@
         // 整批覆蓋 mode：action='save'
         // ====================================================
         async function saveToGAS(data) {
-            const payload = JSON.stringify({ action: 'save', data });
+            const jsonStr = JSON.stringify({ action: 'save', data });
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: payload,
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    redirect: 'follow'
+                    body: 'data=' + encodeURIComponent(jsonStr),
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
                 });
                 const text = await response.text();
                 try { 
@@ -712,9 +711,9 @@
                 }
             } catch (err) {
                 console.warn('POST 失敗，嘗試 GET 備用:', err.message);
-                const jsonStr = JSON.stringify(data);
-                if (jsonStr.length < 6000) {
-                    const url = `${SCRIPT_URL}?action=save&data=${encodeURIComponent(jsonStr)}`;
+                const jsonStr2 = JSON.stringify(data);
+                if (jsonStr2.length < 6000) {
+                    const url = `${SCRIPT_URL}?action=save&data=${encodeURIComponent(jsonStr2)}`;
                     const r = await fetch(url);
                     const resJson = await r.json();
                     if (resJson.error) throw new Error(resJson.error);
@@ -1231,8 +1230,8 @@
             }
 
             // Re-render
-            alert('已成功更新資料，現在將重新整理頁面。');
-            document.getElementById('btn-search').click();
+            alert('已成功更新資料，畫面即將重新整理顯示最新紀錄。');
+            window.location.reload();
         }
 
         async function deleteRow(btn, idx) {
@@ -1248,7 +1247,8 @@
                     const result = await saveToGAS(allHistoricalRecords);
                     if (result && result.error) throw new Error(result.error);
                     console.log('刪除儲存結果:', result);
-                    document.getElementById('btn-search').click();
+                    alert('已成功刪除，畫面即將重新整理顯示最新紀錄。');
+                    window.location.reload();
                 } catch (e) {
                     alert('資料庫刪除失敗：' + e.message);
                     allHistoricalRecords = backupRecords;
