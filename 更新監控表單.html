@@ -896,6 +896,58 @@
             paginationDiv.innerHTML = html;
         }
 
+        // --- Date Format Helpers ---
+        function formatApplyTime(val) {
+            if (!val) return '-';
+            let isUpdated = val.includes('(已更新)') ? ' (已更新)' : '';
+            let dateStr = val.replace('(已更新)', '').trim();
+            let d = new Date(dateStr);
+            if (isNaN(d.getTime())) return val;
+            
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd} ${hh}:${min}${isUpdated}`;
+        }
+
+        function formatSaleDateStr(val) {
+            if (!val) return '';
+            let d = new Date(val);
+            if (isNaN(d.getTime())) return val;
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd}`;
+        }
+
+        function formatTimeHM(val) {
+            if (!val) return '-';
+            let str = String(val).trim();
+            if (str.includes(':')) {
+                let parts = str.split(':');
+                if (parts.length >= 2) {
+                    let hhStr = parts[0].trim();
+                    let mmStr = parts[1].trim();
+                    if (hhStr.includes(' ')) {
+                        const sp = hhStr.split(' ');
+                        hhStr = sp[sp.length - 1];
+                    }
+                    if (hhStr.includes('T')) {
+                        const sp = hhStr.split('T');
+                        hhStr = sp[sp.length - 1];
+                    }
+                    const hh = parseInt(hhStr, 10);
+                    const mm = parseInt(mmStr, 10);
+                    if (!isNaN(hh) && !isNaN(mm)) {
+                        return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+                    }
+                }
+            }
+            return str;
+        }
+
         function renderTablePaginated() {
             const tbody = document.getElementById('results-tbody');
             const countDiv = document.getElementById('result-count');
@@ -926,12 +978,18 @@
                 // Helper to conditionally apply red color if modified
                 const c = (key) => mods.includes(key) ? 'color: #dc2626; font-weight: 700;' : '';
 
+                const fApply = formatApplyTime(r['申請時間']);
+                const fSaleDate = r['開賣日期'] ? formatSaleDateStr(r['開賣日期']) : '';
+                const fWeek = r['星期'] || '';
+                const fSaleDateFull = fSaleDate ? (fWeek ? `${fSaleDate} (${fWeek})` : fSaleDate) : '-';
+                const fTime = formatTimeHM(r['時間']);
+
                 html += `
 					<tr data-index="${origIdx}">
-						<td class="apply-time">${r['申請時間'] || '-'}</td>
+						<td class="apply-time" style="${c('申請時間')}">${fApply}</td>
 						<td class="col-modifier" style="${c('異動人員')}">${r['異動人員'] || '-'}</td>
-						<td class="col-saleDate" style="${c('開賣日期')}">${r['開賣日期'] ? `${r['開賣日期']} (${r['星期'] || ''})` : '-'}</td>
-						<td class="col-time" style="${c('時間')}">${r['時間'] || '-'}</td>
+						<td class="col-saleDate" style="${c('開賣日期')}">${fSaleDateFull}</td>
+						<td class="col-time" style="${c('時間')}">${fTime}</td>
 						<td class="col-action" style="${c('售票/核銷')}">${r['售票/核銷'] || '-'}</td>
 						<td class="col-level" style="${c('監控等級')}">${r['監控等級'] || '-'}</td>
 						<td class="col-sys" style="${c('系統別')}">${r['系統別'] || '-'}</td>
@@ -1039,10 +1097,12 @@
                     }
                     td.innerHTML = `<select class="cell-input input-${col}">${optionsHtml}</select>`;
                 } else if (col === 'saleDate') {
-                    td.innerHTML = `<input type="date" class="cell-input input-${col}" value="${val.replace(/\//g, '-')}">`;
+                    let formattedSaleDate = formatSaleDateStr(val);
+                    td.innerHTML = `<input type="date" class="cell-input input-${col}" value="${formattedSaleDate.replace(/\//g, '-')}">`;
                 } else if (col === 'time') {
-                    const hh = val ? val.split(':')[0] : '';
-                    const mm = val ? val.split(':')[1] : '';
+                    let formattedTime = formatTimeHM(val);
+                    const hh = (formattedTime !== '-') ? formattedTime.split(':')[0] : '';
+                    const mm = (formattedTime !== '-') ? formattedTime.split(':')[1] : '';
                     td.innerHTML = `
                         <div style="display:flex; gap:2px; align-items:center; justify-content:center;">
                             <input type="text" class="cell-input input-time-hh" value="${hh}" list="hh-options" placeholder="時" maxlength="2" style="width:3.5rem;text-align:center;padding:0.2rem;" onchange="if(this.value) this.value=this.value.padStart(2,'0')" onclick="this.select()" title="00-23" pattern="^([0-1]?[0-9]|2[0-3])$">
@@ -1123,7 +1183,13 @@
             }
 
             record._modified = mods;
-            record['申請時間'] = new Date().toLocaleString('zh-TW') + ' (已更新)';
+            const now = new Date();
+            const nowY = now.getFullYear();
+            const nowM = String(now.getMonth() + 1).padStart(2, '0');
+            const nowD = String(now.getDate()).padStart(2, '0');
+            const nowH = String(now.getHours()).padStart(2, '0');
+            const nowMin = String(now.getMinutes()).padStart(2, '0');
+            record['申請時間'] = `${nowY}/${nowM}/${nowD} ${nowH}:${nowMin} (已更新)`;
             try {
                 const s = sessionStorage.getItem(SESSION_KEY);
                 const sess = s ? JSON.parse(s) : {};
@@ -1180,12 +1246,16 @@
                 const mods = r._modified || [];
                 const s = (key, baseCls) => mods.includes(key) ? `class="${baseCls}" style="color: red; font-weight: bold;"` : `class="${baseCls}"`;
 
+                const fSaleDate = r['開賣日期'] ? formatSaleDateStr(r['開賣日期']) : '';
+                const fWeek = r['星期'] || '';
+                const fTime = formatTimeHM(r['時間']);
+
                 dataRowsHtml += `
                     <tr>
                         <td class="td-data">${idx + 1}</td>
-                        <td ${s('開賣日期', 'td-data')}>${r['開賣日期']}</td>
-                        <td class="td-data">${r['星期'] || ''}</td>
-                        <td ${s('時間', 'td-data')}>${r['時間']}</td>
+                        <td ${s('開賣日期', 'td-data')}>${fSaleDate}</td>
+                        <td class="td-data">${fWeek}</td>
+                        <td ${s('時間', 'td-data')}>${fTime}</td>
                         <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷']}</td>
                         <td ${s('監控等級', 'td-blue')}>${r['監控等級']}</td>
                         <td ${s('系統別', 'td-data')}>${r['系統別']}</td>
@@ -1309,12 +1379,16 @@
                 const mods = r._modified || [];
                 const s = (key, baseCls) => mods.includes(key) ? `class="${baseCls}" style="color: red; font-weight: bold;"` : `class="${baseCls}"`;
 
+                const fSaleDate = r['開賣日期'] ? formatSaleDateStr(r['開賣日期']) : '';
+                const fWeek = r['星期'] || '';
+                const fTime = formatTimeHM(r['時間']);
+
                 dataRows += `
                     <tr>
                         <td class="td-data">${idx + 1}</td>
-                        <td ${s('開賣日期', 'td-data')}>${r['開賣日期']}</td>
-                        <td class="td-data">${r['星期'] || ''}</td>
-                        <td ${s('時間', 'td-data')}>${r['時間']}</td>
+                        <td ${s('開賣日期', 'td-data')}>${fSaleDate}</td>
+                        <td class="td-data">${fWeek}</td>
+                        <td ${s('時間', 'td-data')}>${fTime}</td>
                         <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷']}</td>
                         <td ${s('監控等級', 'td-blue')}>${r['監控等級']}</td>
                         <td ${s('系統別', 'td-data')}>${r['系統別']}</td>
