@@ -496,6 +496,11 @@
             calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: 'zh-tw',
                 initialView: 'dayGridMonth',
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
@@ -504,19 +509,27 @@
                 initialDate: new Date(currentYear, 0, 1),
                 eventContent: function (arg) {
                     let titleHtml = `<div style="font-weight:bold; color:var(--primary); line-height: 1.4; font-size: 0.85rem; word-break: break-all; white-space: normal;">${arg.timeText} ${arg.event.title}</div>`;
-                    let propsText = '';
 
                     const props = arg.event.extendedProps;
+                    
+                    let line1Str = `系統:${props.sys || '-'} | 機器:${props.machine || '-'} | 監控:${props.level || '-'}`;
+                    let line1Html = `<div style="font-size: 0.75rem; color: #334155; margin-top: 4px; font-weight: 500;">${line1Str}</div>`;
+                    
                     let labels = [];
-                    if (props.sys) labels.push(`系統:${props.sys}`);
-                    if (props.level) labels.push(`等級:${props.level}`);
-                    if (props.owner) labels.push(`負責:${props.owner}`);
+                    if (props.owner) labels.push(`業務:${props.owner}`);
+                    if (props.pm && props.pm !== 'X') labels.push(`PM:${props.pm}`);
+                    if (props.itA && props.itA !== 'X') labels.push(`A:${props.itA}`);
+                    if (props.itCash && props.itCash !== 'X') labels.push(`金:${props.itCash}`);
+                    if (props.itD && props.itD !== 'X') labels.push(`D:${props.itD}`);
+                    if (props.itQ && props.itQ !== 'X') labels.push(`Q:${props.itQ}`);
+                    if (props.itE && props.itE !== 'X') labels.push(`E:${props.itE}`);
 
+                    let propsText = '';
                     if (labels.length > 0) {
-                        propsText = `<div style="font-size: 0.75rem; color: #475569; margin-top: 4px; line-height: 1.3; white-space: normal; word-break: break-all;">${labels.join(' ')}</div>`;
+                        propsText = `<div style="font-size: 0.7rem; color: #475569; margin-top: 2px; line-height: 1.3; white-space: normal; word-break: break-all;">${labels.join(' ')}</div>`;
                     }
 
-                    return { html: `<div style="padding: 2px 4px; display: flex; flex-direction: column;">${titleHtml}${propsText}</div>` };
+                    return { html: `<div style="padding: 2px 4px; display: flex; flex-direction: column;">${titleHtml}${line1Html}${propsText}</div>` };
                 }
             });
             calendar.render();
@@ -585,8 +598,15 @@
                     allDay: !timeStr,
                     extendedProps: {
                         sys: r['系統別'],
+                        machine: r['機器等級'],
                         level: r['監控等級'],
-                        owner: r['負責業務']
+                        owner: r['負責業務'],
+                        pm: r['監控PM'],
+                        itA: r['A系統+會員IT'],
+                        itCash: r['金流IT'],
+                        itD: r['D系統IT'],
+                        itQ: r['Q系統IT'],
+                        itE: r['E系統IT']
                     }
                 };
             });
