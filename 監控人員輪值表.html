@@ -741,6 +741,72 @@
             }
         };
 
+        function formatSaleDateStr(str) {
+            if (!str) return '';
+            str = String(str);
+            const pureMatch = str.match(/^(\d{4})[^\d]?(\d{1,2})[^\d]?(\d{1,2})/);
+            if (pureMatch) {
+                const yyyy = pureMatch[1];
+                const mm = pureMatch[2].padStart(2, '0');
+                const dd = pureMatch[3].padStart(2, '0');
+                return `${yyyy}/${mm}/${dd}`;
+            }
+            return str;
+        }
+
+        function formatTimeHM(str) {
+            if (!str) return '-';
+            str = String(str);
+            const m = str.match(/(\d{1,2})[:：](\d{2})/);
+            if (m) {
+                return `${m[1].padStart(2, '0')}:${m[2]}`;
+            }
+            const n = str.match(/(\d{1,2})/);
+            if (n && parseInt(n[1]) <= 24) {
+                return `${n[1].padStart(2, '0')}:00`;
+            }
+            return (str === '(無)') ? '-' : str;
+        }
+
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlVEL8SwA5hy28n2-6TgQGG1cd0rhG81azxr4nlUwy-c6lqtODZHrwI5yeOOAfb5vC7A/exec';
+
+        async function saveToGAS(data) {
+            const payload = JSON.stringify({ action: 'save', data });
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: payload,
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    redirect: 'follow'
+                });
+                const text = await response.text();
+                try { 
+                    const p = JSON.parse(text); 
+                    if (p.error) throw new Error(p.error);
+                    return p;
+                } catch(e) { 
+                    if (e.message !== "Unexpected token" && !e.message.startsWith("Unexpected")) {
+                        if (text.includes('"error"')) {
+                            throw new Error("Server returned an error but parsing failed: " + text.substring(0, 100));
+                        }
+                    }
+                    if (e.message && e.message.includes("error")) throw e;
+                    return { success: true, raw: text }; 
+                }
+            } catch (err) {
+                console.warn('POST 失敗，嘗試 GET 備用:', err.message);
+                const jsonStr = JSON.stringify(data);
+                if (jsonStr.length < 6000) {
+                    const url = `${SCRIPT_URL}?action=save&data=${encodeURIComponent(jsonStr)}`;
+                    const r = await fetch(url);
+                    const resJson = await r.json();
+                    if (resJson.error) throw new Error(resJson.error);
+                    return resJson;
+                }
+                throw err;
+            }
+        }
+
         window.onload = async function () {
             document.getElementById('results-tbody').innerHTML = '<tr><td colspan="18" class="empty-state">資料載入中，請稍候...</td></tr>';
             try {
@@ -925,10 +991,15 @@
                 // Helper to conditionally apply red color if modified
                 const c = (key) => mods.includes(key) ? 'color: #dc2626; font-weight: 700;' : '';
 
+                const fSaleDate = r['開賣日期'] ? formatSaleDateStr(r['開賣日期']) : '';
+                const fWeek = r['星期'] || '';
+                const displaySaleDate = fSaleDate ? `${fSaleDate} (${fWeek})` : '-';
+                const fTime = formatTimeHM(r['時間']);
+
                 html += `
 					<tr data-index="${origIdx}">
-						<td class="col-saleDate" style="${c('開賣日期')}">${r['開賣日期'] ? `${r['開賣日期']} (${r['星期'] || ''})` : '-'}</td>
-						<td class="col-time" style="${c('時間')}">${r['時間'] || '-'}</td>
+						<td class="col-saleDate" style="${c('開賣日期')}">${displaySaleDate}</td>
+						<td class="col-time" style="${c('時間')}">${fTime}</td>
 						<td class="col-action" style="${c('售票/核銷')}">${r['售票/核銷'] || '-'}</td>
 						<td class="col-sys" style="${c('系統別')}">${r['系統別'] || '-'}</td>
 						<td class="col-code" style="${c('A節目代碼/E活動分類')}">${r['A節目代碼/E活動分類'] || '-'}</td>
@@ -997,13 +1068,14 @@
             const originalText = btn.innerHTML;
             try {
                 btn.textContent = '儲存中...';
-                await fetch('https://script.google.com/macros/s/AKfycbxlVEL8SwA5hy28n2-6TgQGG1cd0rhG81azxr4nlUwy-c6lqtODZHrwI5yeOOAfb5vC7A/exec', {
-                    method: 'POST',
-                    body: JSON.stringify(allHistoricalRecords)
-                });
-                alert('已成功儲存監控人員輪值表資料！');
+                const result = await saveToGAS(allHistoricalRecords);
+                if (result && result.error) throw new Error(result.error);
+                alert('已成功儲存監控人員輪值表資料！\n畫面即將重新整理顯示最新資料。');
             } catch (e) {
-                alert('資料庫更新失敗！');
+                console.error("更新失敗:", e);
+                alert('資料庫更新失敗：' + e.message);
+                btn.innerHTML = originalText;
+                return;
             }
             btn.innerHTML = originalText;
             document.getElementById('btn-search').click();
@@ -1037,12 +1109,17 @@
                 const mods = r._modified || [];
                 const s = (key, baseCls) => mods.includes(key) ? `class="${baseCls}" style="color: red; font-weight: bold;"` : `class="${baseCls}"`;
 
+                const fSaleDate = r['開賣日期'] ? formatSaleDateStr(r['開賣日期']) : '';
+                const fWeek = r['星期'] || '';
+                const displaySaleDate = fSaleDate ? `${fSaleDate}` : '';
+                const fTime = formatTimeHM(r['時間']);
+
                 dataRows += `
                     <tr>
                         <td class="td-data">${idx + 1}</td>
-                        <td ${s('開賣日期', 'td-data')}>${r['開賣日期']}</td>
-                        <td class="td-data">${r['星期'] || ''}</td>
-                        <td ${s('時間', 'td-data')}>${r['時間']}</td>
+                        <td ${s('開賣日期', 'td-data')}>${displaySaleDate}</td>
+                        <td class="td-data">${fWeek}</td>
+                        <td ${s('時間', 'td-data')}>${fTime}</td>
                         <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷']}</td>
                         <td ${s('監控等級', 'td-blue')}>${r['監控等級']}</td>
                         <td ${s('系統別', 'td-data')}>${r['系統別']}</td>
