@@ -734,6 +734,8 @@
         window.updateRecordTemp = function(idx, key, value) {
             const record = allHistoricalRecords[idx];
             if (!record._modified) record._modified = [];
+            else if (typeof record._modified === 'string') record._modified = record._modified.split(',');
+
             if (record[key] !== value) {
                 if (!record._modified.includes(key)) record._modified.push(key);
                 record[key] = value;
@@ -985,6 +987,8 @@
                 let optionsHtml = opts.map(opt => `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`).join('');
                 if (!opts.includes(val) && val) {
                     optionsHtml = `<option value="${val}" selected>${val}</option>` + optionsHtml;
+                } else if (!val) {
+                    optionsHtml = `<option value="" selected disabled hidden>請選擇</option>` + optionsHtml;
                 }
                 return `<select class="cell-input" onchange="updateRecordTemp(${origIdx}, '${recordKey}', this.value)">${optionsHtml}</select>`;
             };

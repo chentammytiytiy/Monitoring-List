@@ -1160,7 +1160,8 @@
             const newOp = tr.querySelector('.input-op').value.trim();
 
             const record = allHistoricalRecords[idx];
-            const mods = record._modified || [];
+            let mods = record._modified || [];
+            if (typeof mods === 'string') mods = mods.split(',');
 
             const updates = [
                 { k: '開賣日期', v: newSaleDate },
