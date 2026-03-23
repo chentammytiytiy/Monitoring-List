@@ -528,7 +528,6 @@
                     if (labels.length > 0) {
                         propsText = `<div style="font-size: 0.7rem; color: #475569; margin-top: 2px; line-height: 1.3; white-space: normal; word-break: break-all;">${labels.join(' ')}</div>`;
                     }
-
                     return { html: `<div style="padding: 2px 4px; display: flex; flex-direction: column;">${titleHtml}${line1Html}${propsText}</div>` };
                 }
             });
@@ -547,29 +546,12 @@
                 calendar.gotoDate(year + '-01-01');
             }
 
-            const filtered = allHistoricalRecords.filter(r => {
-                const dateStr = r['開賣日期'] || '';
-                if (!dateStr) return false;
-                const isTicketSale = r['售票/核銷'] === '售票';
-
-                let matchesDate = false;
-                const cleanDateStr = dateStr.split(' (')[0];
+            const events = allHistoricalRecords.filter(r => r['開賣日期'] && r['售票/核銷'] === '售票').map(r => {
+                const cleanDateStr = String(r['開賣日期']).replace(/\s*\(.*?\)/g, '').replace(/-/g, '/').trim();
                 const d = new Date(cleanDateStr);
-                if (!isNaN(d.getTime())) {
-                    if (month) {
-                        matchesDate = (d.getFullYear() == year && (d.getMonth() + 1) == parseInt(month, 10));
-                    } else {
-                        matchesDate = (d.getFullYear() == year);
-                    }
-                }
+                
+                if (isNaN(d.getTime())) return null;
 
-                return matchesDate && isTicketSale;
-            });
-
-            // Re-map to calendar events
-            const events = filtered.map(r => {
-                const cleanDateStr = (r['開賣日期'] || '').split(' (')[0];
-                const d = new Date(cleanDateStr);
                 const yyyy = d.getFullYear();
                 const mm = String(d.getMonth() + 1).padStart(2, '0');
                 const dd = String(d.getDate()).padStart(2, '0');
@@ -599,21 +581,21 @@
                     start: dt,
                     allDay: !timeStr,
                     extendedProps: {
-                        sys: r['系統別'],
-                        machine: r['機器等級'],
-                        level: r['監控等級'],
-                        owner: r['負責業務'],
-                        pm: r['監控PM'],
-                        itA: r['A系統+會員IT'],
-                        itCash: r['金流IT'],
-                        itD: r['D系統IT'],
-                        itQ: r['Q系統IT'],
-                        itE: r['E系統IT']
+                        sys: r['系統別'] || '',
+                        machine: r['機器等級'] || '',
+                        level: r['監控等級'] || '',
+                        owner: r['負責業務'] || '',
+                        pm: r['監控PM'] || '',
+                        itA: r['A系統+會員IT'] || '',
+                        itCash: r['金流IT'] || '',
+                        itD: r['D系統IT'] || '',
+                        itQ: r['Q系統IT'] || '',
+                        itE: r['E系統IT'] || ''
                     }
                 };
-            });
+            }).filter(e => e !== null);
 
-            calendar.removeAllEvents();
+            calendar.removeAllEventSources();
             calendar.addEventSource(events);
         });
         // ── 登入驗證 & 登出 ──
