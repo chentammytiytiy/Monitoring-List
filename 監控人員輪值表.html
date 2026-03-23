@@ -737,21 +737,32 @@
             if (record[key] !== value) {
                 if (!record._modified.includes(key)) record._modified.push(key);
                 record[key] = value;
-                record['申請時間'] = new Date().toLocaleString('zh-TW') + ' (已更新人員輪值)';
+                
+                const now = new Date();
+                const nowY = now.getFullYear();
+                const nowM = String(now.getMonth() + 1).padStart(2, '0');
+                const nowD = String(now.getDate()).padStart(2, '0');
+                const nowH = String(now.getHours()).padStart(2, '0');
+                const nowMin = String(now.getMinutes()).padStart(2, '0');
+                record['申請時間'] = `${nowY}/${nowM}/${nowD} ${nowH}:${nowMin} (已更新)`;
+                
+                try {
+                    const s = sessionStorage.getItem('monitoring_system_session');
+                    const sess = s ? JSON.parse(s) : {};
+                    record['異動人員'] = sess.name || sess.username || '未知';
+                } catch(e) {}
             }
         };
 
         function formatSaleDateStr(str) {
             if (!str) return '';
-            str = String(str);
-            const pureMatch = str.match(/^(\d{4})[^\d]?(\d{1,2})[^\d]?(\d{1,2})/);
-            if (pureMatch) {
-                const yyyy = pureMatch[1];
-                const mm = pureMatch[2].padStart(2, '0');
-                const dd = pureMatch[3].padStart(2, '0');
-                return `${yyyy}/${mm}/${dd}`;
-            }
-            return str;
+            let cleanVal = String(str).split(' (')[0];
+            let d = new Date(cleanVal);
+            if (isNaN(d.getTime())) return str;
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd}`;
         }
 
         function formatTimeHM(str) {
@@ -992,7 +1003,7 @@
 
                 const fSaleDate = r['開賣日期'] ? formatSaleDateStr(r['開賣日期']) : '';
                 const fWeek = r['星期'] || '';
-                const displaySaleDate = fSaleDate ? `${fSaleDate} (${fWeek})` : '-';
+                const displaySaleDate = fSaleDate ? (fWeek ? `${fSaleDate} (${fWeek})` : fSaleDate) : '-';
                 const fTime = formatTimeHM(r['時間']);
 
                 html += `
@@ -1119,16 +1130,16 @@
                         <td ${s('開賣日期', 'td-data')}>${displaySaleDate}</td>
                         <td class="td-data">${fWeek}</td>
                         <td ${s('時間', 'td-data')}>${fTime}</td>
-                        <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷']}</td>
-                        <td ${s('監控等級', 'td-blue')}>${r['監控等級']}</td>
-                        <td ${s('系統別', 'td-data')}>${r['系統別']}</td>
-                        <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類']}</td>
-                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱']}</td>
-                        <td ${s('機器等級', 'td-gray')}>${r['機器等級']}</td>
+                        <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷'] || ''}</td>
+                        <td ${s('監控等級', 'td-blue')}>${r['監控等級'] || ''}</td>
+                        <td ${s('系統別', 'td-data')}>${r['系統別'] || ''}</td>
+                        <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類'] || ''}</td>
+                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱'] || ''}</td>
+                        <td ${s('機器等級', 'td-gray')}>${r['機器等級'] || ''}</td>
                         <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
                         <td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
                         <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
-                        <td ${s('售票通路', 'td-yellow')}>${r['售票通路']}</td>
+                        <td ${s('售票通路', 'td-yellow')}>${r['售票通路'] || ''}</td>
                         <td class="td-data">${r['機台流管'] || ''}</td>
                         <td class="td-data">${r['可售張數'] || ''}</td>
                         <td class="td-data">${r['其它單位監控'] || ''}</td>

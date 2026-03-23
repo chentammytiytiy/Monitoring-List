@@ -927,7 +927,8 @@
 
         function formatSaleDateStr(val) {
             if (!val) return '';
-            let d = new Date(val);
+            let cleanVal = String(val).split(' (')[0];
+            let d = new Date(cleanVal);
             if (isNaN(d.getTime())) return val;
             const yyyy = d.getFullYear();
             const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -1411,16 +1412,16 @@
                         <td ${s('開賣日期', 'td-data')}>${fSaleDate}</td>
                         <td class="td-data">${fWeek}</td>
                         <td ${s('時間', 'td-data')}>${fTime}</td>
-                        <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷']}</td>
-                        <td ${s('監控等級', 'td-blue')}>${r['監控等級']}</td>
-                        <td ${s('系統別', 'td-data')}>${r['系統別']}</td>
-                        <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類']}</td>
-                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱']}</td>
-                        <td ${s('機器等級', 'td-gray')}>${r['機器等級']}</td>
+                        <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷'] || ''}</td>
+                        <td ${s('監控等級', 'td-blue')}>${r['監控等級'] || ''}</td>
+                        <td ${s('系統別', 'td-data')}>${r['系統別'] || ''}</td>
+                        <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類'] || ''}</td>
+                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱'] || ''}</td>
+                        <td ${s('機器等級', 'td-gray')}>${r['機器等級'] || ''}</td>
                         <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
                         <td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
                         <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
-                        <td ${s('售票通路', 'td-yellow')}>${r['售票通路']}</td>
+                        <td ${s('售票通路', 'td-yellow')}>${r['售票通路'] || ''}</td>
                         <td class="td-data">${r['機台流管'] || ''}</td>
                         <td class="td-data">${r['可售張數'] || ''}</td>
                         <td class="td-data">${r['其它單位監控'] || ''}</td>

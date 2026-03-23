@@ -553,7 +553,8 @@
                 const isTicketSale = r['售票/核銷'] === '售票';
 
                 let matchesDate = false;
-                const d = new Date(dateStr);
+                const cleanDateStr = dateStr.split(' (')[0];
+                const d = new Date(cleanDateStr);
                 if (!isNaN(d.getTime())) {
                     if (month) {
                         matchesDate = (d.getFullYear() == year && (d.getMonth() + 1) == parseInt(month, 10));
@@ -567,7 +568,8 @@
 
             // Re-map to calendar events
             const events = filtered.map(r => {
-                const d = new Date(r['開賣日期']);
+                const cleanDateStr = (r['開賣日期'] || '').split(' (')[0];
+                const d = new Date(cleanDateStr);
                 const yyyy = d.getFullYear();
                 const mm = String(d.getMonth() + 1).padStart(2, '0');
                 const dd = String(d.getDate()).padStart(2, '0');
