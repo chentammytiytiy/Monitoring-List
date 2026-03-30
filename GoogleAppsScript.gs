@@ -13,6 +13,9 @@ var SPREADSHEET_ID = '1suou6jcWJTuUh_mbKp9c9nlpoNtQSyqxxxvxgHgtpX8';
  *   - ?action=save&data=... → 寫入（小資料向下相容）
  */
 function doGet(e) {
+  if (e.parameter && e.parameter.action === 'get_users') {
+    return handleGetUsers();
+  }
   if (e.parameter && e.parameter.action === 'save') {
     return handleSave(e.parameter.data || '');
   }
@@ -48,6 +51,8 @@ function doPost(e) {
         return handleAppend(records);
       } else if (action === 'log_account') {
         return handleLogAccount(records);
+      } else if (action === 'sync_users') {
+        return handleSyncUsers(records);
       } else {
         return handleSaveArray(records);
       }
@@ -101,6 +106,44 @@ function handleLogAccount(records) {
     return jsonResponse({ success: true, count: records.length });
   } catch (err) {
     Logger.log('handleLogAccount error: ' + err.toString());
+    return jsonResponse({ error: err.toString() });
+  }
+}
+
+/**
+ * 寫入系統帳號（整批覆寫）
+ */
+function handleSyncUsers(records) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet = ss.getSheetByName('系統帳號');
+    if (!sheet) {
+      sheet = ss.insertSheet('系統帳號');
+    }
+    sheet.clearContents();
+    if (records.length === 0) return jsonResponse({ success: true, count: 0 });
+    
+    var headers = ['username', 'password', 'name', 'role', 'permissions', 'enabled', 'createdAt'];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    
+    var rows = records.map(function(r) {
+      return [
+        r.username || '',
+        r.password || '',
+        r.name || '',
+        r.role || '',
+        r.permissions ? JSON.stringify(r.permissions) : '[]',
+        r.enabled !== false,
+        r.createdAt || new Date().toISOString()
+      ];
+    });
+    
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+    sheet.setFrozenRows(1);
+    
+    return jsonResponse({ success: true, count: records.length });
+  } catch(err) {
+    Logger.log('handleSyncUsers error: ' + err.toString());
     return jsonResponse({ error: err.toString() });
   }
 }
@@ -275,6 +318,42 @@ function readTableAsArray() {
       });
       return obj;
     });
+}
+
+/**
+ * 讀取系統帳號
+ */
+function handleGetUsers() {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet = ss.getSheetByName('系統帳號');
+    if (!sheet) return jsonResponse([]);
+    
+    var lastRow = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+    if (lastRow < 2 || lastCol < 1) return jsonResponse([]);
+    
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+    
+    var users = data.map(function(row) {
+      var u = {};
+      headers.forEach(function(h, i) {
+        if (h === 'permissions') {
+          try { u[h] = JSON.parse(row[i]); } catch(e) { u[h] = []; }
+        } else if (h === 'enabled') {
+          u[h] = (row[i] === true || row[i] === 'TRUE' || row[i] === 'true');
+        } else {
+          u[h] = row[i];
+        }
+      });
+      return u;
+    });
+    return jsonResponse(users);
+  } catch(err) {
+    Logger.log('handleGetUsers error: ' + err.toString());
+    return jsonResponse({ error: err.toString() });
+  }
 }
 
 // ============================================================

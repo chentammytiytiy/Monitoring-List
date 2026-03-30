@@ -807,6 +807,13 @@
 
         function saveUsers(users) {
             localStorage.setItem(USERS_KEY, JSON.stringify(users));
+            
+            // 同步帳號資料到 GAS 的「系統帳號」Sheet
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'sync_users', data: users }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            }).catch(e => console.error('GAS sync error', e));
         }
 
         function getPermissions(containerSelector) {
