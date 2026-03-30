@@ -781,7 +781,7 @@
             return (str === '(無)') ? '-' : str;
         }
 
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlVEL8SwA5hy28n2-6TgQGG1cd0rhG81azxr4nlUwy-c6lqtODZHrwI5yeOOAfb5vC7A/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/library/d/1Rq6-6-IEEkZsMCylliL0H-R2k1PQu1uRJBlV5va-5Ct1A2noX6gwW4V8/7';
 
         async function saveToGAS(data) {
             const payload = JSON.stringify({ action: 'save', data });
@@ -822,7 +822,7 @@
         window.onload = async function () {
             document.getElementById('results-tbody').innerHTML = '<tr><td colspan="18" class="empty-state">資料載入中，請稍候...</td></tr>';
             try {
-                const response = await fetch(`https://script.google.com/macros/s/AKfycbxlVEL8SwA5hy28n2-6TgQGG1cd0rhG81azxr4nlUwy-c6lqtODZHrwI5yeOOAfb5vC7A/exec?t=${new Date().getTime()}`);
+                const response = await fetch(`https://script.google.com/macros/library/d/1Rq6-6-IEEkZsMCylliL0H-R2k1PQu1uRJBlV5va-5Ct1A2noX6gwW4V8/7?t=${new Date().getTime()}`);
                 allHistoricalRecords = await response.json();
             } catch (e) {
                 console.error("無法讀取資料庫資料:", e);

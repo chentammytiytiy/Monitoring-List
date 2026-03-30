@@ -46,6 +46,8 @@ function doPost(e) {
       var records = payload.data;
       if (action === 'append') {
         return handleAppend(records);
+      } else if (action === 'log_account') {
+        return handleLogAccount(records);
       } else {
         return handleSaveArray(records);
       }
@@ -65,6 +67,43 @@ function doPost(e) {
 // ============================================================
 // 寫入相關函數
 // ============================================================
+
+/**
+ * 紀錄帳號操作
+ */
+function handleLogAccount(records) {
+  try {
+    if (!Array.isArray(records)) {
+      records = [records];
+    }
+    
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheetName = '帳號紀錄';
+    var sheet = ss.getSheetByName(sheetName);
+    
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      sheet.appendRow(['建立時間', '動作', '操作者', '目標帳號', '目標姓名', '目標角色', '權限']);
+      sheet.setFrozenRows(1);
+    }
+    
+    records.forEach(function(r) {
+      var time = r.time || new Date().toISOString();
+      var action = r.action || '新增';
+      var operator = r.operator || '';
+      var targetUser = r.targetUser || '';
+      var targetName = r.targetName || '';
+      var targetRole = r.targetRole || '';
+      var perms = r.permissions ? r.permissions.join(', ') : '';
+      sheet.appendRow([time, action, operator, targetUser, targetName, targetRole, perms]);
+    });
+    
+    return jsonResponse({ success: true, count: records.length });
+  } catch (err) {
+    Logger.log('handleLogAccount error: ' + err.toString());
+    return jsonResponse({ error: err.toString() });
+  }
+}
 
 /** GET save 向下相容 */
 function handleSave(jsonString) {
