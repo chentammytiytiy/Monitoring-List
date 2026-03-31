@@ -642,8 +642,6 @@
             <table id="results-table">
                 <thead>
                     <tr>
-                        <th>申請時間</th>
-                        <th>異動人員</th>
                         <th>開賣日期</th>
                         <th>時間</th>
                         <th>售票/核銷</th>
@@ -660,6 +658,8 @@
                         <th>特別說明</th>
                         <th>負責業務</th>
                         <th>建檔人員</th>
+                        <th>申請時間</th>
+                        <th>異動人員</th>
                         <th>操作</th>
                     </tr>
                 </thead>
@@ -1000,8 +1000,6 @@
 
                 html += `
 					<tr data-index="${origIdx}">
-						<td class="apply-time" style="${c('申請時間')}">${fApply}</td>
-						<td class="col-modifier" style="${c('異動人員')}">${r['異動人員'] || '-'}</td>
 						<td class="col-saleDate" style="${c('開賣日期')}">${fSaleDateFull}</td>
 						<td class="col-time" style="${c('時間')}">${fTime}</td>
 						<td class="col-action" style="${c('售票/核銷')}">${r['售票/核銷'] || '-'}</td>
@@ -1018,6 +1016,8 @@
 						<td class="col-note" style="${c('特別說明')}">${r['特別說明'] || '-'}</td>
 						<td class="col-owner" style="${c('負責業務')}">${r['負責業務'] || '-'}</td>
 						<td class="col-op" style="${c('建檔OP')}">${r['建檔OP'] || '-'}</td>
+						<td class="apply-time" style="${c('申請時間')}">${fApply}</td>
+						<td class="col-modifier" style="${c('異動人員')}">${r['異動人員'] || '-'}</td>
                         <td>
                             <button class="btn-edit" onclick="editRow(this, ${origIdx})">編輯</button>
                             <button class="btn-save" onclick="saveRow(this, ${origIdx})">儲存</button>
