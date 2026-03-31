@@ -200,6 +200,34 @@
 			background: rgba(79, 70, 229, 0.2);
 		}
 
+		.form-section {
+			background: rgba(255, 255, 255, 0.4);
+			border: 1px solid var(--border-color);
+			border-radius: 12px;
+			padding: 1.5rem;
+			margin-bottom: 2rem;
+			box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+			animation: slideIn 0.5s ease forwards;
+			opacity: 0;
+		}
+
+		.form-section:nth-child(1) { animation-delay: 0.1s; }
+		.form-section:nth-child(2) { animation-delay: 0.2s; }
+		.form-section:nth-child(3) { animation-delay: 0.3s; }
+
+		.form-section-title {
+			font-size: 1.15rem;
+			font-weight: 600;
+			color: var(--primary);
+			margin-top: 0;
+			margin-bottom: 1.5rem;
+			padding-bottom: 0.5rem;
+			border-bottom: 2px solid rgba(79, 70, 229, 0.1);
+			display: flex;
+			align-items: center;
+			gap: 0.6rem;
+		}
+
 		.form-grid {
 			display: grid;
 			grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -610,121 +638,143 @@
 			<h1>監控申請表單</h1>
 		</div>
 		<form id="monitorForm">
-			<div class="form-grid">
-				<div class="form-group" style="grid-column: span 2;">
-					<label for="saleDateTime">銷售日期時間 <span style="color:#f472b6">*</span></label>
-					<input type="text" id="saleDateTime" name="銷售日期時間" required placeholder="請選擇銷售日期與時間" style="background:#fff url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'3\' y=\'4\' width=\'18\' height=\'18\' rx=\'2\' ry=\'2\'/><line x1=\'16\' y1=\'2\' x2=\'16\' y2=\'6\'/><line x1=\'8\' y1=\'2\' x2=\'8\' y2=\'6\'/><line x1=\'3\' y1=\'10\' x2=\'21\' y2=\'10\'/></svg>') no-repeat 96% center; padding-right: 2.5rem; cursor: pointer;">
-				</div>
+			<div class="form-section">
+				<h3 class="form-section-title">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+					活動基本資訊
+				</h3>
+				<div class="form-grid">
+					<div class="form-group" style="grid-column: span 2;">
+						<label for="saleDateTime">銷售日期時間 <span style="color:#f472b6">*</span></label>
+						<input type="text" id="saleDateTime" name="銷售日期時間" required placeholder="請選擇銷售日期與時間" style="background:#fff url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'3\' y=\'4\' width=\'18\' height=\'18\' rx=\'2\' ry=\'2\'/><line x1=\'16\' y1=\'2\' x2=\'16\' y2=\'6\'/><line x1=\'8\' y1=\'2\' x2=\'8\' y2=\'6\'/><line x1=\'3\' y1=\'10\' x2=\'21\' y2=\'10\'/></svg>') no-repeat 96% center; padding-right: 2.5rem; cursor: pointer;">
+					</div>
 
-				<div class="form-group">
-					<label for="ticketAction">售票/核銷</label>
-					<select id="ticketAction" name="售票/核銷">
-						<option value="售票">售票</option>
-						<option value="核銷">核銷</option>
-					</select>
-				</div>
+					<div class="form-group">
+						<label for="eventName">活動名稱 <span style="color:#f472b6">*</span></label>
+						<input type="text" id="eventName" name="活動名稱" required placeholder="請輸入活動名稱">
+					</div>
 
-				<div class="form-group">
-					<label for="monitorLevel">監控等級</label>
-					<select id="monitorLevel" name="監控等級">
-						<option value="小">小</option>
-						<option value="中">中</option>
-						<option value="大">大</option>
-						<option value="免監控">免監控</option>
-					</select>
-				</div>
+					<div class="form-group">
+						<label for="programCode">A節目代碼 / E活動分類 <span style="color:#f472b6">*</span></label>
+						<input type="text" id="programCode" name="A節目代碼/E活動分類" required placeholder="請輸入代碼或分類">
+					</div>
 
-				<div class="form-group">
-					<label for="systemType">系統別</label>
-					<select id="systemType" name="系統別">
-						<option value="A系統">A系統</option>
-						<option value="E系統">E系統</option>
-						<option value="交通">交通</option>
-						<option value="其他">其他</option>
-					</select>
-				</div>
+					<div class="form-group">
+						<label for="ticketCount">可售張數 <span style="color:#f472b6">*</span></label>
+						<input type="text" id="ticketCount" name="可售張數" placeholder="請輸入可售張數" required>
+					</div>
 
-				<div class="form-group">
-					<label for="programCode">A節目代碼 / E活動分類 <span style="color:#f472b6">*</span></label>
-					<input type="text" id="programCode" name="A節目代碼/E活動分類" required placeholder="請輸入代碼或分類">
-				</div>
+					<div class="form-group">
+						<label for="ticketAction">售票/核銷</label>
+						<select id="ticketAction" name="售票/核銷">
+							<option value="售票">售票</option>
+							<option value="核銷">核銷</option>
+						</select>
+					</div>
 
-				<div class="form-group">
-					<label for="eventName">活動名稱 <span style="color:#f472b6">*</span></label>
-					<input type="text" id="eventName" name="活動名稱" required placeholder="請輸入活動名稱">
-				</div>
-
-				<div class="form-group">
-					<label for="machineLevel">機器等級</label>
-					<select id="machineLevel" name="機器等級">
-						<option value="小">小</option>
-						<option value="中">中</option>
-						<option value="大">大</option>
-					</select>
-				</div>
-
-				<div class="form-group">
-					<label>排隊機制</label>
-					<div class="radio-group">
-						<label><input type="radio" name="排隊機制" value="無" checked> 無</label>
-						<label><input type="radio" name="排隊機制" value="一般排隊"> 一般排隊</label>
-						<label><input type="radio" name="排隊機制" value="流管畫面"> 流管畫面</label>
+					<div class="form-group">
+						<label for="ticketChannel">售票通路</label>
+						<select id="ticketChannel" name="售票通路">
+							<option value="網站">網站</option>
+							<option value="機台">機台</option>
+							<option value="網站+機台">網站+機台</option>
+						</select>
 					</div>
 				</div>
+			</div>
 
-				<div class="form-group">
-					<label for="ticketChannel">售票通路</label>
-					<select id="ticketChannel" name="售票通路">
-						<option value="網站">網站</option>
-						<option value="機台">機台</option>
-						<option value="網站+機台">網站+機台</option>
-					</select>
+			<div class="form-section">
+				<h3 class="form-section-title">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l10 6.5v7L12 22 2 15.5v-7L12 2zM12 22v-6.5"></path><path d="M22 8.5l-10 7-10-7"></path><path d="M2 15.5l10-7 10 7"></path></svg>
+					系統與監控設定
+				</h3>
+				<div class="form-grid">
+					<div class="form-group">
+						<label for="systemType">系統別</label>
+						<select id="systemType" name="系統別">
+							<option value="A系統">A系統</option>
+							<option value="E系統">E系統</option>
+							<option value="交通">交通</option>
+							<option value="其他">其他</option>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="monitorLevel">監控等級</label>
+						<select id="monitorLevel" name="監控等級">
+							<option value="小">小</option>
+							<option value="中">中</option>
+							<option value="大">大</option>
+							<option value="免監控">免監控</option>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="machineLevel">機器等級</label>
+						<select id="machineLevel" name="機器等級">
+							<option value="小">小</option>
+							<option value="中">中</option>
+							<option value="大">大</option>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="otherMonitor">其它單位監控</label>
+						<input type="text" id="otherMonitor" name="其它單位監控" value="無">
+					</div>
+
+					<div class="form-group">
+						<label>排隊機制</label>
+						<div class="radio-group">
+							<label><input type="radio" name="排隊機制" value="無" checked> 無</label>
+							<label><input type="radio" name="排隊機制" value="一般排隊"> 一般排隊</label>
+							<label><input type="radio" name="排隊機制" value="流管畫面"> 流管畫面</label>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="machineFlowControl">機台流管</label>
+						<input type="number" id="machineFlowControl" name="機台流管" value="500" placeholder="請輸入機台流管">
+					</div>
 				</div>
+			</div>
 
-				<div class="form-group">
-					<label for="machineFlowControl">機台流管</label>
-					<input type="number" id="machineFlowControl" name="機台流管" value="500" placeholder="請輸入機台流管">
-				</div>
+			<div class="form-section">
+				<h3 class="form-section-title">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+					人員與備註
+				</h3>
+				<div class="form-grid">
+					<div class="form-group">
+						<label for="monitorPersonnel">負責業務 <span style="color:#f472b6">*</span></label>
+						<select id="monitorPersonnel" name="負責業務" required>
+							<option value="" disabled selected>請選擇負責業務</option>
+							<option value="蔣璧雲">蔣璧雲</option>
+							<option value="王意涵">王意涵</option>
+							<option value="薛雅心">薛雅心</option>
+							<option value="洪瑞祥">洪瑞祥</option>
+							<option value="李心榆">李心榆</option>
+						</select>
+					</div>
 
-				<div class="form-group">
-					<label for="ticketCount">可售張數 <span style="color:#f472b6">*</span></label>
-					<input type="text" id="ticketCount" name="可售張數" placeholder="請輸入可售張數" required>
-				</div>
+					<div class="form-group">
+						<label for="fileOP">建檔OP</label>
+						<select id="fileOP" name="建檔OP">
+							<option value="" selected>請選擇建檔OP</option>
+							<option value="何乾源">何乾源</option>
+							<option value="陳乃菁">陳乃菁</option>
+							<option value="曾雅鈞">曾雅鈞</option>
+							<option value="鄭婷芝">鄭婷芝</option>
+							<option value="王馨瑤">王馨瑤</option>
+							<option value="賴怡儒">賴怡儒</option>
+							<option value="陳思穎">陳思穎</option>
+						</select>
+					</div>
 
-				<div class="form-group">
-					<label for="otherMonitor">其它單位監控</label>
-					<input type="text" id="otherMonitor" name="其它單位監控" value="無">
-				</div>
-
-				<div class="form-group">
-					<label for="monitorPersonnel">負責業務 <span style="color:#f472b6">*</span></label>
-					<select id="monitorPersonnel" name="負責業務" required>
-						<option value="" disabled selected>請選擇負責業務</option>
-						<option value="蔣璧雲">蔣璧雲</option>
-						<option value="王意涵">王意涵</option>
-						<option value="薛雅心">薛雅心</option>
-						<option value="洪瑞祥">洪瑞祥</option>
-						<option value="李心榆">李心榆</option>
-					</select>
-				</div>
-
-				<div class="form-group">
-					<label for="fileOP">建檔OP</label>
-					<select id="fileOP" name="建檔OP">
-						<option value="" selected>請選擇建檔OP</option>
-						<option value="何乾源">何乾源</option>
-						<option value="陳乃菁">陳乃菁</option>
-						<option value="曾雅鈞">曾雅鈞</option>
-						<option value="鄭婷芝">鄭婷芝</option>
-						<option value="王馨瑤">王馨瑤</option>
-						<option value="賴怡儒">賴怡儒</option>
-						<option value="陳思穎">陳思穎</option>
-					</select>
-				</div>
-
-				<div class="form-group full-width">
-					<label for="specialNote">特別說明</label>
-					<textarea id="specialNote" name="特別說明" placeholder="請填寫任何特別說明事項..."></textarea>
+					<div class="form-group full-width">
+						<label for="specialNote">特別說明</label>
+						<textarea id="specialNote" name="特別說明" placeholder="請填寫任何特別說明事項..."></textarea>
+					</div>
 				</div>
 			</div>
 
