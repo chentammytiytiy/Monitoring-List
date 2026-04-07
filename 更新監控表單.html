@@ -1355,7 +1355,8 @@
             } catch (err) {
                 // EML fallback
                 const emlSubject = "=?utf-8?B?" + btoa(unescape(encodeURIComponent(emailSubject))) + "?=";
-                const emlContent = `To: ${emailReceiver}\nSubject: ${emlSubject}\nX-Unsent: 1\nContent-Type: text/html; charset=utf-8\n\n<html><head><meta charset="UTF-8"></head><body>${mailHtmlBody}</body></html>`;
+                const emlEmailReceiver = emailReceiver.replace(/;/g, ',');
+                const emlContent = `To: ${emlEmailReceiver}\nSubject: ${emlSubject}\nX-Unsent: 1\nContent-Type: text/html; charset=utf-8\n\n<html><head><meta charset="UTF-8"></head><body>${mailHtmlBody}</body></html>`;
 
                 const blob = new Blob([emlContent], { type: 'message/rfc822' });
                 const url = window.URL.createObjectURL(blob);

@@ -1304,8 +1304,9 @@
 				// Solution: Generate an .eml file (Outlook draft) and trigger download.
 
 				const emlSubject = "=?utf-8?B?" + btoa(unescape(encodeURIComponent(emailSubject))) + "?=";
+				const emlEmailReceiver = emailReceiver.replace(/;/g, ',');
 
-				const emlContent = `To: ${emailReceiver}
+				const emlContent = `To: ${emlEmailReceiver}
 Subject: ${emlSubject}
 X-Unsent: 1
 Content-Type: text/html; charset=utf-8
