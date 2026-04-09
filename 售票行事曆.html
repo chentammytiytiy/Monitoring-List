@@ -598,6 +598,104 @@
             calendar.removeAllEventSources();
             calendar.addEventSource(events);
         });
+
+        document.getElementById('btn-export-excel').addEventListener('click', function () {
+            const year = document.getElementById('search-year').value;
+            const month = document.getElementById('search-month').value;
+            
+            const filteredRecords = allHistoricalRecords.filter(r => {
+                if (!r['開賣日期'] || r['售票/核銷'] !== '售票') return false;
+                
+                const cleanDateStr = String(r['開賣日期']).replace(/\s*\(.*?\)/g, '').replace(/-/g, '/').trim();
+                const d = new Date(cleanDateStr);
+                if (isNaN(d.getTime())) return false;
+                
+                if (String(d.getFullYear()) !== year) return false;
+                if (month && String(d.getMonth() + 1).padStart(2, '0') !== month) return false;
+                
+                return true;
+            });
+            
+            if (filteredRecords.length === 0) {
+                alert('該月份/年度沒有可匯出的活動資料');
+                return;
+            }
+
+            filteredRecords.sort((a, b) => {
+                const dA = new Date(String(a['開賣日期']).replace(/\s*\(.*?\)/g, '').replace(/-/g, '/').trim());
+                const dB = new Date(String(b['開賣日期']).replace(/\s*\(.*?\)/g, '').replace(/-/g, '/').trim());
+                return dA - dB;
+            });
+
+            let dataRowsHtml = '';
+            filteredRecords.forEach((r, idx) => {
+                const dateStr = (r['開賣日期'] || '').replace(/\s*\(.*\)/, '').trim(); 
+                const timeStr = r['時間'] === '(無)' ? '' : (r['時間'] || '');
+                dataRowsHtml += `
+                    <tr>
+                        <td style="border: 1px solid #000; text-align: center;">${idx + 1}</td>
+                        <td style="border: 1px solid #000; text-align: center;">${dateStr}</td>
+                        <td style="border: 1px solid #000; text-align: center;">${timeStr}</td>
+                        <td style="border: 1px solid #000;">${r['系統別'] || ''}</td>
+                        <td style="border: 1px solid #000; mso-number-format:'\@';">${r['A節目代碼/E活動分類'] || ''}</td>
+                        <td style="border: 1px solid #000;">${r['活動名稱'] || ''}</td>
+                        <td style="border: 1px solid #000; text-align: center;">${r['機器等級'] || ''}</td>
+                        <td style="border: 1px solid #000; text-align: center;">${r['監控等級'] || ''}</td>
+                        <td style="border: 1px solid #000;">${r['負責業務'] || ''}</td>
+                        <td style="border: 1px solid #000; text-align: center;">${r['監控PM'] || ''}</td>
+                        <td style="border: 1px solid #000; text-align: center;">${r['A系統+會員IT'] || ''}</td>
+                        <td style="border: 1px solid #000; text-align: center;">${r['金流IT'] || ''}</td>
+                        <td style="border: 1px solid #000; text-align: center;">${r['D系統IT'] || ''}</td>
+                        <td style="border: 1px solid #000; text-align: center;">${r['Q系統IT'] || ''}</td>
+                        <td style="border: 1px solid #000; text-align: center;">${r['E系統IT'] || ''}</td>
+                    </tr>
+                `;
+            });
+
+            const tableHtml = `
+                <table style="border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f1f5f9;">
+                            <th style="border: 1px solid #000; padding: 5px;">項次</th>
+                            <th style="border: 1px solid #000; padding: 5px;">開賣日期</th>
+                            <th style="border: 1px solid #000; padding: 5px;">時間</th>
+                            <th style="border: 1px solid #000; padding: 5px;">系統別</th>
+                            <th style="border: 1px solid #000; padding: 5px;">A節目代碼/E活動分類</th>
+                            <th style="border: 1px solid #000; padding: 5px;">活動名稱</th>
+                            <th style="border: 1px solid #000; padding: 5px;">機器等級</th>
+                            <th style="border: 1px solid #000; padding: 5px;">監控等級</th>
+                            <th style="border: 1px solid #000; padding: 5px;">負責業務</th>
+                            <th style="border: 1px solid #000; padding: 5px;">監控PM</th>
+                            <th style="border: 1px solid #000; padding: 5px;">A系統+會員IT</th>
+                            <th style="border: 1px solid #000; padding: 5px;">金流IT</th>
+                            <th style="border: 1px solid #000; padding: 5px;">D系統IT</th>
+                            <th style="border: 1px solid #000; padding: 5px;">Q系統IT</th>
+                            <th style="border: 1px solid #000; padding: 5px;">E系統IT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${dataRowsHtml}
+                    </tbody>
+                </table>
+            `;
+
+            const excelFile = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>售票活動列表</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>${tableHtml}</body></html>`;
+            
+            const blob = new Blob([excelFile], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+
+            const today = new Date();
+            const yyyymmdd = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
+            
+            a.href = url;
+            a.download = `售票活動列表_${year}${month ? month : ''}_${yyyymmdd}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        });
+        
         // ── 登入驗證 & 登出 ──
         const SESSION_KEY = 'monitoring_system_session';
         (function checkAuth() {
