@@ -628,7 +628,7 @@
 
             let dataRowsHtml = '';
             filteredRecords.forEach((r, idx) => {
-                const dateStr = (r['開賣日期'] || '').replace(/\s*\(.*\)/, '').trim(); 
+                const dateStr = (r['開賣日期'] || '').replace(/\s*\(.*\)/, '').replace(/-/g, '/').trim(); 
                 const timeStr = r['時間'] === '(無)' ? '' : (r['時間'] || '').trim();
                 let hr = '00', min = '00';
                 let timeStrOutput = '';
@@ -655,7 +655,7 @@
                 dataRowsHtml += `
                     <tr>
                         <td style="border: 1px solid #000; text-align: center;">${idx + 1}</td>
-                        <td style="border: 1px solid #000; text-align: center;">${saleDateTimeStr}</td>
+                        <td style="border: 1px solid #000; text-align: center; mso-number-format:'\@';">${saleDateTimeStr}</td>
                         <td style="border: 1px solid #000;">${r['系統別'] || ''}</td>
                         <td style="border: 1px solid #000; mso-number-format:'\@';">${r['A節目代碼/E活動分類'] || ''}</td>
                         <td style="border: 1px solid #000;">${r['活動名稱'] || ''}</td>
