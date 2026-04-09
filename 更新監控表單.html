@@ -1013,7 +1013,7 @@
 						<td class="col-machineFlow" style="${c('機台流管')}">${r['機台流管'] || '-'}</td>
 						<td class="col-tickets" style="${c('可售張數')}">${r['可售張數'] || '-'}</td>
 						<td class="col-otherMonitor" style="${c('其它單位監控')}">${r['其它單位監控'] || '-'}</td>
-						<td class="col-note" style="${c('特別說明')}">${r['特別說明'] || '-'}</td>
+						<td class="col-note" style="${c('特別說明')}">${(r['特別說明'] === '(無)' || !r['特別說明']) ? '' : r['特別說明']}</td>
 						<td class="col-owner" style="${c('負責業務')}">${r['負責業務'] || '-'}</td>
 						<td class="col-op" style="${c('建檔OP')}">${r['建檔OP'] || '-'}</td>
 						<td class="apply-time" style="${c('申請時間')}">${fApply}</td>
@@ -1129,7 +1129,8 @@
                 } else if (col === 'machineFlow') {
                     td.innerHTML = `<input type="number" class="cell-input input-${col}" value="${val}">`;
                 } else if (col === 'note') {
-                    td.innerHTML = `<textarea class="cell-input input-${col}" rows="3" style="width:100%;resize:vertical;">${val}</textarea>`;
+                    const noteVal = val === '(無)' ? '' : val;
+                    td.innerHTML = `<textarea class="cell-input input-${col}" rows="3" style="width:100%;resize:vertical;">${noteVal}</textarea>`;
                 } else {
                     td.innerHTML = `<input type="text" class="cell-input input-${col}" value="${val}">`;
                 }
@@ -1293,7 +1294,7 @@
                         <td class="td-data">${r['機台流管'] || ''}</td>
                         <td class="td-data">${r['可售張數'] || ''}</td>
                         <td class="td-data">${r['其它單位監控'] || ''}</td>
-                        <td class="td-data">${r['特別說明'] || ''}</td>
+                        <td class="td-data">${r['特別說明'] === '(無)' ? '' : (r['特別說明'] || '')}</td>
                         <td ${s('負責業務', 'td-data')}>${r['負責業務'] || ''}</td>
                         <td ${s('建檔OP', 'td-data')}>${r['建檔OP'] || ''}</td>
                     </tr>
@@ -1427,7 +1428,7 @@
                         <td class="td-data">${r['機台流管'] || ''}</td>
                         <td class="td-data">${r['可售張數'] || ''}</td>
                         <td class="td-data">${r['其它單位監控'] || ''}</td>
-                        <td class="td-data">${r['特別說明'] || ''}</td>
+                        <td class="td-data">${r['特別說明'] === '(無)' ? '' : (r['特別說明'] || '')}</td>
                         <td ${s('負責業務', 'td-data')}>${r['負責業務'] || ''}</td>
                         <td ${s('建檔OP', 'td-data')}>${r['建檔OP'] || ''}</td>
                     </tr>

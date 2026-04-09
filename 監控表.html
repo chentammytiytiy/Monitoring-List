@@ -1139,7 +1139,11 @@
 
 			for (const [key, value] of formData.entries()) {
 				if (key === '銷售日期時間') continue;
-				record[key] = value.trim() === '' ? '(無)' : value;
+				if (key === '特別說明') {
+					record[key] = value.trim() === '' ? '' : value;
+				} else {
+					record[key] = value.trim() === '' ? '(無)' : value;
+				}
 			}
 			
 			record['開賣日期'] = datePart || '(無)';
