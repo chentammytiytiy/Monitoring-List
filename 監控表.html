@@ -1492,6 +1492,14 @@ ${mailHtmlBody}
 					window.location.href = 'login.html';
 					return;
 				}
+                document.querySelectorAll('.sidebar-menu a').forEach(a => {
+                    const text = a.textContent.trim();
+                    if (text === '帳號權限管理') return;
+                    if (!perms.includes(text)) {
+                        const li = a.closest('li');
+                        if (li) li.style.display = 'none';
+                    }
+                });
 			}
 			// 顯示帳號資訊
 			const infoEl = document.getElementById('sidebar-user-info');

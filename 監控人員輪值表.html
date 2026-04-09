@@ -1253,6 +1253,16 @@
             if (session.role === 'admin') {
                 const li = document.getElementById('li-admin-link');
                 if (li) li.style.display = '';
+            } else {
+                const perms = session.permissions || [];
+                document.querySelectorAll('.sidebar-menu a').forEach(a => {
+                    const text = a.textContent.trim();
+                    if (text === '帳號權限管理') return;
+                    if (!perms.includes(text)) {
+                        const li = a.closest('li');
+                        if (li) li.style.display = 'none';
+                    }
+                });
             }
         })();
 
