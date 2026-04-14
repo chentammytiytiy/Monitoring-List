@@ -628,29 +628,44 @@
 
             let dataRowsHtml = '';
             filteredRecords.forEach((r, idx) => {
-                const dateStr = (r['開賣日期'] || '').replace(/\s*\(.*\)/, '').replace(/-/g, '/').trim(); 
-                const timeStr = r['時間'] === '(無)' ? '' : (r['時間'] || '').trim();
-                let hr = '00', min = '00';
-                let timeStrOutput = '';
-                if (timeStr) {
-                    const timeMatch = timeStr.match(/(\d{1,2})[:：](\d{2})/);
-                    if (timeMatch) {
-                        hr = timeMatch[1].padStart(2, '0');
-                        min = timeMatch[2].padStart(2, '0');
-                        timeStrOutput = ` ${hr}:${min}`;
-                    } else {
-                        const numMatch = timeStr.match(/(\d{1,2})/);
-                        if (numMatch) {
-                            hr = numMatch[1].padStart(2, '0');
-                            timeStrOutput = ` ${hr}:00`;
+                let saleDateTimeStr = '';
+                const baseDateStr = String(r['開賣日期'] || '').trim();
+                const cleanDateStr = baseDateStr.replace(/\s*\(.*?\)/g, '').replace(/-/g, '/').trim();
+                
+                if (cleanDateStr) {
+                    const d = new Date(cleanDateStr);
+                    let formattedDateStr = baseDateStr;
+                    if (!isNaN(d.getTime())) {
+                        const yyyy = d.getFullYear();
+                        const mm = String(d.getMonth() + 1).padStart(2, '0');
+                        const dd = String(d.getDate()).padStart(2, '0');
+                        const days = ['日', '一', '二', '三', '四', '五', '六'];
+                        const dayOfWeek = days[d.getDay()];
+                        formattedDateStr = `${yyyy}/${mm}/${dd}(${dayOfWeek})`;
+                    }
+
+                    const timeStr = r['時間'] === '(無)' ? '' : (r['時間'] || '').trim();
+                    let timeStrOutput = '';
+                    if (timeStr) {
+                        const timeMatch = timeStr.match(/(\d{1,2})[:：](\d{2})/);
+                        if (timeMatch) {
+                            const hr = timeMatch[1].padStart(2, '0');
+                            const min = timeMatch[2].padStart(2, '0');
+                            timeStrOutput = ` ${hr}:${min}`;
                         } else {
-                            if(timeStr && timeStr !== '(無)') {
-                                timeStrOutput = ` ${timeStr}`;
+                            const numMatch = timeStr.match(/(\d{1,2})/);
+                            if (numMatch) {
+                                const hr = numMatch[1].padStart(2, '0');
+                                timeStrOutput = ` ${hr}:00`;
+                            } else {
+                                if (timeStr && timeStr !== '(無)') {
+                                    timeStrOutput = ` ${timeStr}`;
+                                }
                             }
                         }
                     }
+                    saleDateTimeStr = `${formattedDateStr}${timeStrOutput}`;
                 }
-                const saleDateTimeStr = dateStr ? `${dateStr}${timeStrOutput}` : '';
 
                 dataRowsHtml += `
                     <tr>
