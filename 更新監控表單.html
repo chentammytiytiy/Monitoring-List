@@ -311,9 +311,10 @@
 
         /* Table Styling */
         .table-wrapper {
-            overflow-x: auto;
+            overflow: auto;
             border-radius: 10px;
             border: 1px solid var(--border-color);
+            max-height: calc(100vh - 340px);
         }
 
         table {
@@ -340,6 +341,10 @@
             font-weight: 600;
             color: var(--text-main);
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            background: #f1f5f9;
+            z-index: 10;
         }
 
         td {
@@ -397,11 +402,12 @@
 
         .sticky-col {
             position: sticky;
-            z-index: 10;
+            z-index: 5;
         }
         thead th.sticky-col {
             background: #f1f5f9;
-            z-index: 11;
+            z-index: 15;
+            top: 0;
         }
         tbody td.sticky-col {
             background: #fff;
