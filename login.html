@@ -447,6 +447,7 @@
     </div>
 
     <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAE9D4xxmt5YqmvoUJjWXgzuGWykP9HtTGeaURK2Mwjwn9NEYp0SbgNJlnH0uw2eajag/exec';
         // ── 使用者資料管理（以 localStorage 儲存）──
         const USERS_KEY = 'monitoring_system_users';
         const SESSION_KEY = 'monitoring_system_session';
@@ -550,7 +551,7 @@
         const errorMsg = document.getElementById('error-msg');
         const errorText = document.getElementById('error-text');
 
-        loginForm.addEventListener('submit', function(e) {
+        loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
@@ -559,43 +560,64 @@
             btnLogin.classList.add('loading');
             errorMsg.classList.remove('show');
 
-            // 模擬短暫延遲以提升使用者體驗
-            setTimeout(function() {
-                const user = authenticate(username, password);
-                if (user) {
-                    // 儲存 session 資料
-                    sessionStorage.setItem(SESSION_KEY, JSON.stringify({
-                        username: user.username,
-                        name: user.name,
-                        role: user.role,
-                        permissions: user.permissions || [],
-                        loginAt: new Date().toISOString()
-                    }));
-
-                    // 跳轉到主頁面：根據權限判斷跳轉
-                    const perms = user.permissions || [];
-                    if (user.role === 'admin' || perms.includes('監控申請表單')) {
-                        window.location.href = '監控表.html';
-                    } else if (perms.includes('查詢及更新監控表單')) {
-                        window.location.href = '更新監控表單.html';
-                    } else if (perms.includes('監控人員輪值表')) {
-                        window.location.href = '監控人員輪值表.html';
-                    } else if (perms.includes('售票行事曆')) {
-                        window.location.href = '售票行事曆.html';
-                    } else {
-                        alert('您沒有任何頁面的存取權限！');
-                        sessionStorage.removeItem(SESSION_KEY);
-                        btnLogin.classList.remove('loading');
+            try {
+                // 從 GAS 獲取最新帳號資料
+                const res = await fetch(`${SCRIPT_URL}?action=get_users`);
+                const latestUsers = await res.json();
+                
+                // 如果有拿到資料，則更新 localStorage
+                if (Array.isArray(latestUsers) && latestUsers.length > 0) {
+                    const hasAdmin = latestUsers.some(u => u.username === 'qwarepm');
+                    if (!hasAdmin) {
+                         latestUsers.unshift({
+                            username: 'qwarepm',
+                            password: 'qwarepm',
+                            name: '系統管理員',
+                            role: 'admin',
+                            enabled: true,
+                            createdAt: new Date().toISOString()
+                        });
                     }
-                } else {
-                    btnLogin.classList.remove('loading');
-                    errorText.textContent = '帳號或密碼錯誤，請重新輸入';
-                    errorMsg.classList.add('show');
-                    // 清空密碼欄位
-                    document.getElementById('password').value = '';
-                    document.getElementById('password').focus();
+                    localStorage.setItem(USERS_KEY, JSON.stringify(latestUsers));
                 }
-            }, 600);
+            } catch (err) {
+                console.error("無法同步帳號資料:", err);
+            }
+
+            const user = authenticate(username, password);
+            if (user) {
+                // 儲存 session 資料
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+                    username: user.username,
+                    name: user.name,
+                    role: user.role,
+                    permissions: user.permissions || [],
+                    loginAt: new Date().toISOString()
+                }));
+
+                // 跳轉到主頁面：根據權限判斷跳轉
+                const perms = user.permissions || [];
+                if (user.role === 'admin' || perms.includes('監控申請表單')) {
+                    window.location.href = '監控表.html';
+                } else if (perms.includes('查詢及更新監控表單')) {
+                    window.location.href = '更新監控表單.html';
+                } else if (perms.includes('監控人員輪值表')) {
+                    window.location.href = '監控人員輪值表.html';
+                } else if (perms.includes('售票行事曆')) {
+                    window.location.href = '售票行事曆.html';
+                } else {
+                    alert('您沒有任何頁面的存取權限！');
+                    sessionStorage.removeItem(SESSION_KEY);
+                    btnLogin.classList.remove('loading');
+                }
+            } else {
+                btnLogin.classList.remove('loading');
+                errorText.textContent = '帳號或密碼錯誤，請重新輸入';
+                errorMsg.classList.add('show');
+                // 清空密碼欄位
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            }
         });
 
         // Enter 鍵提交

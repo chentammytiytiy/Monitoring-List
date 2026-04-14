@@ -1073,7 +1073,31 @@
         });
 
         // ── Init ──
-        renderTable();
+        async function init() {
+            renderTable(); // 先顯示本地的（有的話）
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=get_users`);
+                const latestUsers = await res.json();
+                if (Array.isArray(latestUsers) && latestUsers.length > 0) {
+                    const hasAdmin = latestUsers.some(u => u.username === 'qwarepm');
+                    if (!hasAdmin) {
+                         latestUsers.unshift({
+                            username: 'qwarepm',
+                            password: 'qwarepm',
+                            name: '系統管理員',
+                            role: 'admin',
+                            enabled: true,
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+                    localStorage.setItem(USERS_KEY, JSON.stringify(latestUsers));
+                    renderTable(); // 有新資料再重新渲染
+                }
+            } catch (err) {
+                console.error("無法同步帳號資料:", err);
+            }
+        }
+        init();
     </script>
 </body>
 
