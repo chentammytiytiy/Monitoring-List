@@ -529,6 +529,112 @@
             border-radius: 4px;
             background: #F8FAFC;
         }
+
+        /* Modal Styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-content {
+            background: #fff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+        .btn-close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .btn-close-modal:hover {
+            color: #ef4444;
+        }
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.2rem;
+        }
+        .modal-footer {
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            background: #f8fafc;
+            border-radius: 0 0 16px 16px;
+        }
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-cancel:hover {
+            background: #cbd5e1;
+        }
+        .btn-save-modal {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+        }
+        .btn-save-modal:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+        }
+        .modal-body .form-group label {
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .modal-body input, .modal-body select, .modal-body textarea {
+            width: 100%;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 
@@ -680,6 +786,133 @@
 
         <div id="pagination" class="pagination-container"></div>
     </div>
+    </div>
+    
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>編輯監控資料</h2>
+                <button type="button" class="btn-close-modal" onclick="closeEditModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>開賣日期</label>
+                            <input type="date" id="modal-saleDate">
+                        </div>
+                        <div class="form-group">
+                            <label>時間 (時:分)</label>
+                            <div style="display:flex; gap: 5px;">
+                                <input type="text" id="modal-time-hh" list="hh-options" placeholder="時" maxlength="2" onchange="if(this.value) this.value=this.value.padStart(2,'0')" pattern="^([0-1]?[0-9]|2[0-3])$" style="text-align: center;">
+                                <span style="display:flex; align-items:center; font-weight:bold;">:</span>
+                                <input type="text" id="modal-time-mm" list="mm-options" placeholder="分" maxlength="2" onchange="if(this.value) this.value=this.value.padStart(2,'0')" pattern="^[0-5][0-9]$" style="text-align: center;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>售票/核銷</label>
+                            <select id="modal-action">
+                                <option value="售票">售票</option>
+                                <option value="核銷">核銷</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>監控等級</label>
+                            <select id="modal-level">
+                                <option value="小">小</option>
+                                <option value="中">中</option>
+                                <option value="大">大</option>
+                                <option value="免監控">免監控</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>系統別</label>
+                            <select id="modal-sys">
+                                <option value="A系統">A系統</option>
+                                <option value="E系統">E系統</option>
+                                <option value="交通">交通</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>A節目代碼/E活動分類</label>
+                            <input type="text" id="modal-code">
+                        </div>
+                        <div class="form-group">
+                            <label>活動名稱</label>
+                            <input type="text" id="modal-name">
+                        </div>
+                        <div class="form-group">
+                            <label>機器等級</label>
+                            <select id="modal-machine">
+                                <option value="小">小</option>
+                                <option value="中">中</option>
+                                <option value="大">大</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>排隊機制</label>
+                            <select id="modal-queue">
+                                <option value="無">無</option>
+                                <option value="一般排隊">一般排隊</option>
+                                <option value="流管畫面">流管畫面</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>售票通路</label>
+                            <select id="modal-channel">
+                                <option value="網站">網站</option>
+                                <option value="機台">機台</option>
+                                <option value="網站+機台">網站+機台</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>機台流管</label>
+                            <input type="number" id="modal-machineFlow">
+                        </div>
+                        <div class="form-group">
+                            <label>可售張數</label>
+                            <input type="text" id="modal-tickets">
+                        </div>
+                        <div class="form-group">
+                            <label>其它單位監控</label>
+                            <input type="text" id="modal-otherMonitor">
+                        </div>
+                        <div class="form-group">
+                            <label>負責業務</label>
+                            <select id="modal-owner">
+                                <option value="蔣璧雲">蔣璧雲</option>
+                                <option value="王意涵">王意涵</option>
+                                <option value="薛雅心">薛雅心</option>
+                                <option value="洪瑞祥">洪瑞祥</option>
+                                <option value="李心榆">李心榆</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>建檔OP</label>
+                            <select id="modal-op">
+                                <option value="何乾源">何乾源</option>
+                                <option value="陳乃菁">陳乃菁</option>
+                                <option value="曾雅鈞">曾雅鈞</option>
+                                <option value="鄭婷芝">鄭婷芝</option>
+                                <option value="王馨瑤">王馨瑤</option>
+                                <option value="賴怡儒">賴怡儒</option>
+                                <option value="陳思穎">陳思穎</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>特別說明</label>
+                        <textarea id="modal-note" rows="3" style="width: 100%; resize: vertical;"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">取消</button>
+                <button type="button" class="btn-save-modal" id="btn-save-modal" onclick="confirmSaveModal()">儲存變更</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1026,7 +1259,6 @@
 						<td class="col-modifier" style="${c('異動人員')}">${r['異動人員'] || '-'}</td>
                         <td>
                             <button class="btn-edit" onclick="editRow(this, ${origIdx})">編輯</button>
-                            <button class="btn-save" onclick="saveRow(this, ${origIdx})">儲存</button>
                             <button class="btn-delete" onclick="deleteRow(this, ${origIdx})">刪除</button>
                         </td>
 					</tr>
@@ -1072,12 +1304,11 @@
             }, 0);
         }
 
-        function editRow(btn, idx) {
-            const tr = btn.closest('tr');
-            btn.style.display = 'none';
-            tr.querySelector('.btn-save').style.display = 'inline-block';
+        let currentEditingIndex = -1;
 
+        function editRow(btn, idx) {
             const record = allHistoricalRecords[idx];
+            currentEditingIndex = idx;
 
             const colsToMap = {
                 'saleDate': '開賣日期',
@@ -1108,63 +1339,72 @@
                 'owner': ['蔣璧雲', '王意涵', '薛雅心', '洪瑞祥', '李心榆'],
                 'op': ['何乾源', '陳乃菁', '曾雅鈞', '鄭婷芝', '王馨瑤', '賴怡儒', '陳思穎']
             };
+
+            // Set modal values
             Object.keys(colsToMap).forEach(col => {
-                const td = tr.querySelector('.col-' + col);
                 const val = record[colsToMap[col]] || '';
-                
-                if (selectOptions[col]) {
-                    let optionsHtml = selectOptions[col].map(opt => `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`).join('');
-                    if (!selectOptions[col].includes(val) && val) {
-                        optionsHtml = `<option value="${val}" selected>${val}</option>` + optionsHtml;
-                    }
-                    td.innerHTML = `<select class="cell-input input-${col}">${optionsHtml}</select>`;
-                } else if (col === 'saleDate') {
+                if (col === 'saleDate') {
                     let formattedSaleDate = formatSaleDateStr(val);
-                    td.innerHTML = `<input type="date" class="cell-input input-${col}" value="${formattedSaleDate.replace(/\//g, '-')}">`;
+                    document.getElementById('modal-' + col).value = formattedSaleDate.replace(/\//g, '-');
                 } else if (col === 'time') {
                     let formattedTime = formatTimeHM(val);
                     const hh = (formattedTime !== '-') ? formattedTime.split(':')[0] : '';
                     const mm = (formattedTime !== '-') ? formattedTime.split(':')[1] : '';
-                    td.innerHTML = `
-                        <div style="display:flex; gap:2px; align-items:center; justify-content:center;">
-                            <input type="text" class="cell-input input-time-hh" value="${hh}" list="hh-options" placeholder="時" maxlength="2" style="width:3.5rem;text-align:center;padding:0.2rem;" onchange="if(this.value) this.value=this.value.padStart(2,'0')" onclick="this.select()" title="00-23" pattern="^([0-1]?[0-9]|2[0-3])$">
-                            <span>:</span>
-                            <input type="text" class="cell-input input-time-mm" value="${mm}" list="mm-options" placeholder="分" maxlength="2" style="width:3.5rem;text-align:center;padding:0.2rem;" onchange="if(this.value) this.value=this.value.padStart(2,'0')" onclick="this.select()" title="00-59" pattern="^[0-5][0-9]$">
-                        </div>
-                    `;
-                } else if (col === 'machineFlow') {
-                    td.innerHTML = `<input type="number" class="cell-input input-${col}" value="${val}">`;
+                    document.getElementById('modal-time-hh').value = hh;
+                    document.getElementById('modal-time-mm').value = mm;
+                } else if (selectOptions[col]) {
+                    const sel = document.getElementById('modal-' + col);
+                    let exists = false;
+                    for (let i = 0; i < sel.options.length; i++) {
+                        if (sel.options[i].value === val) { exists = true; break; }
+                    }
+                    if (!exists && val) {
+                        const opt = document.createElement('option');
+                        opt.value = val;
+                        opt.text = val;
+                        sel.add(opt, 0);
+                    }
+                    sel.value = val;
                 } else if (col === 'note') {
                     const noteVal = val === '(無)' ? '' : val;
-                    td.innerHTML = `<textarea class="cell-input input-${col}" rows="3" style="width:100%;resize:vertical;">${noteVal}</textarea>`;
+                    document.getElementById('modal-' + col).value = noteVal;
                 } else {
-                    td.innerHTML = `<input type="text" class="cell-input input-${col}" value="${val}">`;
+                    document.getElementById('modal-' + col).value = val;
                 }
             });
+
+            document.getElementById('edit-modal').style.display = 'flex';
         }
 
-        async function saveRow(btn, idx) {
-            const tr = btn.closest('tr');
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            currentEditingIndex = -1;
+        }
 
-            // Read values back
-            const newSaleDate = tr.querySelector('.input-saleDate').value.trim().replace(/-/g, '/');
-            const hhVal = tr.querySelector('.input-time-hh').value.trim();
-            const mmVal = tr.querySelector('.input-time-mm').value.trim();
+        async function confirmSaveModal() {
+            if (currentEditingIndex === -1) return;
+            const idx = currentEditingIndex;
+            const btn = document.getElementById('btn-save-modal');
+
+            // Read values back from modal
+            const newSaleDate = document.getElementById('modal-saleDate').value.trim().replace(/-/g, '/');
+            const hhVal = document.getElementById('modal-time-hh').value.trim();
+            const mmVal = document.getElementById('modal-time-mm').value.trim();
             const newTime = (hhVal && mmVal) ? `${hhVal.padStart(2, '0')}:${mmVal.padStart(2, '0')}` : '';
-            const newAction = tr.querySelector('.input-action').value.trim();
-            const newLevel = tr.querySelector('.input-level').value.trim();
-            const newSys = tr.querySelector('.input-sys').value.trim();
-            const newCode = tr.querySelector('.input-code').value.trim();
-            const newName = tr.querySelector('.input-name').value.trim();
-            const newMachine = tr.querySelector('.input-machine').value.trim();
-            const newQueue = tr.querySelector('.input-queue').value.trim();
-            const newChannel = tr.querySelector('.input-channel').value.trim();
-            const newMachineFlow = tr.querySelector('.input-machineFlow').value.trim();
-            const newTickets = tr.querySelector('.input-tickets').value.trim();
-            const newOtherMonitor = tr.querySelector('.input-otherMonitor').value.trim();
-            const newNote = tr.querySelector('.input-note').value.trim();
-            const newOwner = tr.querySelector('.input-owner').value.trim();
-            const newOp = tr.querySelector('.input-op').value.trim();
+            const newAction = document.getElementById('modal-action').value.trim();
+            const newLevel = document.getElementById('modal-level').value.trim();
+            const newSys = document.getElementById('modal-sys').value.trim();
+            const newCode = document.getElementById('modal-code').value.trim();
+            const newName = document.getElementById('modal-name').value.trim();
+            const newMachine = document.getElementById('modal-machine').value.trim();
+            const newQueue = document.getElementById('modal-queue').value.trim();
+            const newChannel = document.getElementById('modal-channel').value.trim();
+            const newMachineFlow = document.getElementById('modal-machineFlow').value.trim();
+            const newTickets = document.getElementById('modal-tickets').value.trim();
+            const newOtherMonitor = document.getElementById('modal-otherMonitor').value.trim();
+            const newNote = document.getElementById('modal-note').value.trim();
+            const newOwner = document.getElementById('modal-owner').value.trim();
+            const newOp = document.getElementById('modal-op').value.trim();
 
             const record = allHistoricalRecords[idx];
             let mods = record._modified || [];
@@ -1222,24 +1462,26 @@
 
             try {
                 btn.textContent = '儲存中...';
+                btn.disabled = true;
                 const result = await saveToGAS(allHistoricalRecords);
                 if (result && result.error) throw new Error(result.error);
                 console.log('儲存結果:', result);
             } catch (e) {
                 alert('資料庫更新失敗：' + e.message);
-                btn.textContent = '儲存';
+                btn.textContent = '儲存變更';
+                btn.disabled = false;
                 return;
             }
 
-            // Resend Email with the updated single record (to notify the update)
+            // Resend Email with the updated single record
             try {
                 sendUpdateEmailNotification([record]);
             } catch (err) {
                 console.error("發送信件失敗:", err);
             }
 
-            // Re-render
             alert('已成功更新資料，畫面即將重新整理顯示最新紀錄。');
+            closeEditModal();
             window.location.reload();
         }
 
