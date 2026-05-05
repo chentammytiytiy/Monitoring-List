@@ -756,11 +756,11 @@
                     <tr>
                         <th>開賣日期</th>
                         <th>時間</th>
+                        <th>活動名稱</th>
                         <th>售票/核銷</th>
                         <th>監控等級</th>
                         <th>系統別</th>
                         <th>A節目代碼/E活動分類</th>
-                        <th>活動名稱</th>
                         <th>機器等級</th>
                         <th>排隊機制</th>
                         <th>售票通路</th>
@@ -1241,11 +1241,11 @@
 					<tr data-index="${origIdx}">
 						<td class="col-saleDate" style="${c('開賣日期')}">${fSaleDateFull}</td>
 						<td class="col-time" style="${c('時間')}">${fTime}</td>
+						<td class="col-name" style="${c('活動名稱')}">${r['活動名稱'] || '-'}</td>
 						<td class="col-action" style="${c('售票/核銷')}">${r['售票/核銷'] || '-'}</td>
 						<td class="col-level" style="${c('監控等級')}">${r['監控等級'] || '-'}</td>
 						<td class="col-sys" style="${c('系統別')}">${r['系統別'] || '-'}</td>
 						<td class="col-code" style="${c('A節目代碼/E活動分類')}">${r['A節目代碼/E活動分類'] || '-'}</td>
-						<td class="col-name" style="${c('活動名稱')}">${r['活動名稱'] || '-'}</td>
 						<td class="col-machine" style="${c('機器等級')}">${r['機器等級'] || '-'}</td>
 						<td class="col-queue" style="${c('排隊機制')}">${r['排隊機制'] || '-'}</td>
 						<td class="col-channel" style="${c('售票通路')}">${r['售票通路'] || '-'}</td>
@@ -1529,11 +1529,11 @@
                         <td ${s('開賣日期', 'td-data')}>${fSaleDate}</td>
                         <td class="td-data">${fWeek}</td>
                         <td ${s('時間', 'td-data')}>${fTime}</td>
+                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱']}</td>
                         <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷']}</td>
                         <td ${s('監控等級', 'td-blue')}>${r['監控等級']}</td>
                         <td ${s('系統別', 'td-data')}>${r['系統別']}</td>
                         <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類']}</td>
-                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱']}</td>
                         <td ${s('機器等級', 'td-gray')}>${r['機器等級']}</td>
                         <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
                         <td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
@@ -1568,11 +1568,11 @@
                         <th class="th-fde9d9" rowspan="2">開賣日期</th>
                         <th class="th-fde9d9" rowspan="2">星期</th>
                         <th class="th-fde9d9" rowspan="2">時間</th>
+                        <th class="th-fde9d9" rowspan="2">活動名稱</th>
                         <th class="th-daeef3" rowspan="2">售票/核銷</th>
                         <th class="th-daeef3" rowspan="2">監控等級</th>
                         <th class="th-fde9d9" rowspan="2">系統別</th>
                         <th class="th-fde9d9" rowspan="2">A節目代碼/<br>E活動分類</th>
-                        <th class="th-fde9d9" rowspan="2">活動名稱</th>
                         <th class="th-d8e4bc" rowspan="2">機器等級</th>
                         <th class="th-fde9d9" colspan="3">排隊機制</th>
                         <th class="th-ccc0da" rowspan="2">售票通路</th>
@@ -1663,11 +1663,11 @@
                         <td ${s('開賣日期', 'td-data')}>${fSaleDate}</td>
                         <td class="td-data">${fWeek}</td>
                         <td ${s('時間', 'td-data')}>${fTime}</td>
+                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱'] || ''}</td>
                         <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷'] || ''}</td>
                         <td ${s('監控等級', 'td-blue')}>${r['監控等級'] || ''}</td>
                         <td ${s('系統別', 'td-data')}>${r['系統別'] || ''}</td>
                         <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類'] || ''}</td>
-                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱'] || ''}</td>
                         <td ${s('機器等級', 'td-gray')}>${r['機器等級'] || ''}</td>
                         <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
                         <td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
@@ -1701,11 +1701,11 @@
                         <th class="th-fde9d9" rowspan="2">開賣日期</th>
                         <th class="th-fde9d9" rowspan="2">星期</th>
                         <th class="th-fde9d9" rowspan="2">時間</th>
+                        <th class="th-fde9d9" rowspan="2">活動名稱</th>
                         <th class="th-daeef3" rowspan="2">售票/核銷</th>
                         <th class="th-daeef3" rowspan="2">監控等級</th>
                         <th class="th-fde9d9" rowspan="2">系統別</th>
                         <th class="th-fde9d9" rowspan="2">A節目代碼/<br>E活動分類</th>
-                        <th class="th-fde9d9" rowspan="2">活動名稱</th>
                         <th class="th-d8e4bc" rowspan="2">機器等級</th>
                         <th class="th-fde9d9" colspan="3">排隊機制</th>
                         <th class="th-ccc0da" rowspan="2">售票通路</th>
