@@ -1129,20 +1129,56 @@
                 return match;
             });
 
-            // Re-sort data descending by "開賣日期" (newest first)
+            // Re-sort data descending by "開賣日期" (newest first), and ascending by "時間" (earliest first)
             const sortedBySaleDate = [...filtered].sort((a, b) => {
-                const getSortTime = (rec) => {
+                const getSortDate = (rec) => {
                     if (rec['開賣日期']) {
                         const d = new Date(rec['開賣日期']);
-                        if (!isNaN(d.getTime())) return d.getTime();
+                        if (!isNaN(d.getTime())) {
+                            d.setHours(0, 0, 0, 0);
+                            return d.getTime();
+                        }
                     }
                     if (rec['申請時間']) {
                         const d = new Date(rec['申請時間'].replace('(已更新)', '').trim());
-                        if (!isNaN(d.getTime())) return d.getTime();
+                        if (!isNaN(d.getTime())) {
+                            d.setHours(0, 0, 0, 0);
+                            return d.getTime();
+                        }
                     }
                     return 0;
                 };
-                return getSortTime(b) - getSortTime(a);
+
+                const getSortTimeMinutes = (rec) => {
+                    let val = rec['時間'];
+                    if (!val) return 9999;
+                    let str = String(val).trim();
+                    if (str.includes(':')) {
+                        let parts = str.split(':');
+                        if (parts.length >= 2) {
+                            let hhStr = parts[0].trim();
+                            let mmStr = parts[1].trim();
+                            if (hhStr.includes(' ')) { hhStr = hhStr.split(' ').pop(); }
+                            if (hhStr.includes('T')) { hhStr = hhStr.split('T').pop(); }
+                            const hh = parseInt(hhStr, 10);
+                            const mm = parseInt(mmStr, 10);
+                            if (!isNaN(hh) && !isNaN(mm)) {
+                                return hh * 60 + mm;
+                            }
+                        }
+                    }
+                    return 9999;
+                };
+
+                const dateA = getSortDate(a);
+                const dateB = getSortDate(b);
+
+                if (dateA !== dateB) {
+                    return dateB - dateA; // Date Descending
+                }
+                
+                // Same Date, sort by Time Ascending
+                return getSortTimeMinutes(a) - getSortTimeMinutes(b);
             });
 
             currentFilteredRecords = sortedBySaleDate;
