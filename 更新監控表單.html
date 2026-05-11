@@ -1050,8 +1050,38 @@
                 dEnd = new Date(sDateEnd);
             }
 
+            const hasConditions = sDateStart || sDateEnd || sCodeOrName || sSystem || sOwner;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
             const filtered = allHistoricalRecords.filter(record => {
                 let match = true;
+                
+                const recDateStr = record['開賣日期'];
+                let recDate = null;
+                let isValidDate = false;
+
+                if (recDateStr) {
+                    recDate = new Date(recDateStr);
+                    if (!isNaN(recDate.getTime())) {
+                        isValidDate = true;
+                    }
+                }
+
+                // Default filter: if no conditions, hide records with sale date before today
+                if (!hasConditions) {
+                    if (!isValidDate) {
+                        // If no valid sale date, we can either hide or show. Let's hide it to keep list clean,
+                        // or show it if we strictly only hide past dates. Usually sale date is required.
+                        match = false; 
+                    } else {
+                        const recDateOnly = new Date(recDate.getTime());
+                        recDateOnly.setHours(0, 0, 0, 0);
+                        if (recDateOnly < today) {
+                            match = false;
+                        }
+                    }
+                }
 
                 // 1. Date Range check
                 if (dStart || dEnd) {
@@ -1099,12 +1129,20 @@
                 return match;
             });
 
-            // Re-sort data descending by "開賣日期"
+            // Re-sort data descending by "開賣日期" (newest first)
             const sortedBySaleDate = [...filtered].sort((a, b) => {
-                // Parse correctly, fallback to epoch if missing
-                const dateA = new Date(a['開賣日期'] || parseInt(a['申請時間']));
-                const dateB = new Date(b['開賣日期'] || parseInt(b['申請時間']));
-                return dateB - dateA;
+                const getSortTime = (rec) => {
+                    if (rec['開賣日期']) {
+                        const d = new Date(rec['開賣日期']);
+                        if (!isNaN(d.getTime())) return d.getTime();
+                    }
+                    if (rec['申請時間']) {
+                        const d = new Date(rec['申請時間'].replace('(已更新)', '').trim());
+                        if (!isNaN(d.getTime())) return d.getTime();
+                    }
+                    return 0;
+                };
+                return getSortTime(b) - getSortTime(a);
             });
 
             currentFilteredRecords = sortedBySaleDate;
