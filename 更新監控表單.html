@@ -1177,8 +1177,8 @@
                     return dateB - dateA; // Date Descending
                 }
                 
-                // Same Date, sort by Time Ascending
-                return getSortTimeMinutes(a) - getSortTimeMinutes(b);
+                // Same Date, sort by Time Descending (latest time on top)
+                return getSortTimeMinutes(b) - getSortTimeMinutes(a);
             });
 
             currentFilteredRecords = sortedBySaleDate;
