@@ -1083,6 +1083,23 @@
             paginationDiv.innerHTML = html;
         }
 
+        window.handleSelectChange = function(selectElem, colType, origIdx, recordKey) {
+            if (selectElem.value === '__ADD_NEW__') {
+                const newName = prompt('請輸入新的人員名稱：\n(新增後將自動套用至此欄位，點擊「儲存設定」後，下次重新載入將會自動出現在選單中)');
+                if (newName && newName.trim()) {
+                    updateRecordTemp(origIdx, recordKey, newName.trim());
+                    // 重新渲染表格，讓新輸入的名稱直接加入選單
+                    renderTablePaginated();
+                } else {
+                    // 取消或空白則恢復原值
+                    const r = allHistoricalRecords[origIdx];
+                    selectElem.value = r[recordKey] || '';
+                }
+                return;
+            }
+            updateRecordTemp(origIdx, recordKey, selectElem.value);
+        };
+
         function renderTablePaginated() {
             const tbody = document.getElementById('results-tbody');
             const countDiv = document.getElementById('result-count');
@@ -1102,7 +1119,7 @@
             const startIndex = (currentPage - 1) * itemsPerPage;
             const pageData = dataArray.slice(startIndex, startIndex + itemsPerPage);
 
-            const selectOptions = {
+            const defaultOptions = {
                 'pm': ['X', '陳詩恬', '黃晏瑜', '張家菁', '李聿芸'],
                 'it_a': ['X', '廖崇智', '謝正軒', '張宏偉', '鄒易恆'],
                 'it_cash': ['X', '陳利和'],
@@ -1111,15 +1128,33 @@
                 'it_e': ['X', '黃士哲']
             };
 
+            const colKeys = {
+                'pm': '監控PM',
+                'it_a': 'A系統+會員IT',
+                'it_cash': '金流IT',
+                'it_d': 'D系統IT',
+                'it_q': 'Q系統IT',
+                'it_e': 'E系統IT'
+            };
+
+            const dynamicOptions = {};
+            for (let key in colKeys) {
+                const dbValues = allHistoricalRecords
+                                    .map(r => r[colKeys[key]])
+                                    .filter(val => val && val.trim() !== '');
+                dynamicOptions[key] = [...new Set([...defaultOptions[key], ...dbValues])];
+            }
+
             const buildSelectHtml = (colType, recordKey, val, origIdx) => {
-                const opts = selectOptions[colType] || [];
+                const opts = dynamicOptions[colType] || [];
                 let optionsHtml = opts.map(opt => `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`).join('');
                 if (!opts.includes(val) && val) {
                     optionsHtml = `<option value="${val}" selected>${val}</option>` + optionsHtml;
                 } else if (!val) {
                     optionsHtml = `<option value="" selected disabled hidden>請選擇</option>` + optionsHtml;
                 }
-                return `<select class="cell-input" onchange="updateRecordTemp(${origIdx}, '${recordKey}', this.value)">${optionsHtml}</select>`;
+                optionsHtml += `<option value="__ADD_NEW__" style="color:var(--primary); font-weight:bold;">➕ 自訂輸入...</option>`;
+                return `<select class="cell-input" onchange="handleSelectChange(this, '${colType}', ${origIdx}, '${recordKey}')">${optionsHtml}</select>`;
             };
 
             const buildInputHtml = (recordKey, val, origIdx) => {
