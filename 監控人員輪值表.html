@@ -1145,12 +1145,27 @@
                 dynamicOptions[key] = [...new Set([...defaultOptions[key], ...dbValues])];
             }
 
+            const defaultPresets = {
+                'pm': 'X',
+                'it_cash': '陳利和',
+                'it_d': '黃陸堃',
+                'it_e': 'X'
+            };
+
             const buildSelectHtml = (colType, recordKey, val, origIdx) => {
                 const opts = dynamicOptions[colType] || [];
-                let optionsHtml = opts.map(opt => `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`).join('');
-                if (!opts.includes(val) && val) {
-                    optionsHtml = `<option value="${val}" selected>${val}</option>` + optionsHtml;
-                } else if (!val) {
+                
+                let displayVal = val;
+                if (!val && defaultPresets[colType]) {
+                    displayVal = defaultPresets[colType];
+                    // 默默更新原紀錄，使存檔時可包含預設值，且不會觸發紅字「已修改」狀態
+                    allHistoricalRecords[origIdx][recordKey] = displayVal;
+                }
+
+                let optionsHtml = opts.map(opt => `<option value="${opt}" ${displayVal === opt ? 'selected' : ''}>${opt}</option>`).join('');
+                if (!opts.includes(displayVal) && displayVal) {
+                    optionsHtml = `<option value="${displayVal}" selected>${displayVal}</option>` + optionsHtml;
+                } else if (!displayVal) {
                     optionsHtml = `<option value="" selected disabled hidden>請選擇</option>` + optionsHtml;
                 }
                 optionsHtml += `<option value="__ADD_NEW__" style="color:var(--primary); font-weight:bold;">➕ 自訂輸入...</option>`;
