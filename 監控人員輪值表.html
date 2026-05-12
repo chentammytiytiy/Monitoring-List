@@ -921,8 +921,36 @@
                 dEnd = new Date(sDateEnd);
             }
 
+            const hasConditions = sDateStart || sDateEnd || sCodeOrName || sSystem;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
             const filtered = allHistoricalRecords.filter(record => {
                 let match = true;
+
+                const recDateStr = record['開賣日期'];
+                let recDate = null;
+                let isValidDate = false;
+
+                if (recDateStr) {
+                    recDate = new Date(recDateStr);
+                    if (!isNaN(recDate.getTime())) {
+                        isValidDate = true;
+                    }
+                }
+
+                // Default filter: if no conditions, hide records with sale date before today
+                if (!hasConditions) {
+                    if (!isValidDate) {
+                        match = false; 
+                    } else {
+                        const recDateOnly = new Date(recDate.getTime());
+                        recDateOnly.setHours(0, 0, 0, 0);
+                        if (recDateOnly < today) {
+                            match = false;
+                        }
+                    }
+                }
 
                 // 1. Date Range check
                 if (dStart || dEnd) {
@@ -962,12 +990,56 @@
                 return match;
             });
 
-            // Re-sort data descending by "開賣日期"
+            // Re-sort data descending by "開賣日期" (newest first), and ascending by "時間" (earliest first)
             const sortedBySaleDate = [...filtered].sort((a, b) => {
-                // Parse correctly, fallback to epoch if missing
-                const dateA = new Date(a['開賣日期'] || parseInt(a['申請時間']));
-                const dateB = new Date(b['開賣日期'] || parseInt(b['申請時間']));
-                return dateB - dateA;
+                const getSortDate = (rec) => {
+                    if (rec['開賣日期']) {
+                        const d = new Date(rec['開賣日期']);
+                        if (!isNaN(d.getTime())) {
+                            d.setHours(0, 0, 0, 0);
+                            return d.getTime();
+                        }
+                    }
+                    if (rec['申請時間']) {
+                        const d = new Date(rec['申請時間'].replace('(已更新)', '').trim());
+                        if (!isNaN(d.getTime())) {
+                            d.setHours(0, 0, 0, 0);
+                            return d.getTime();
+                        }
+                    }
+                    return 0;
+                };
+
+                const getSortTimeMinutes = (rec) => {
+                    let val = rec['時間'];
+                    if (!val) return 9999;
+                    let str = String(val).trim();
+                    if (str.includes(':')) {
+                        let parts = str.split(':');
+                        if (parts.length >= 2) {
+                            let hhStr = parts[0].trim();
+                            let mmStr = parts[1].trim();
+                            if (hhStr.includes(' ')) { hhStr = hhStr.split(' ').pop(); }
+                            if (hhStr.includes('T')) { hhStr = hhStr.split('T').pop(); }
+                            const hh = parseInt(hhStr, 10);
+                            const mm = parseInt(mmStr, 10);
+                            if (!isNaN(hh) && !isNaN(mm)) {
+                                return hh * 60 + mm;
+                            }
+                        }
+                    }
+                    return 9999;
+                };
+
+                const dateA = getSortDate(a);
+                const dateB = getSortDate(b);
+
+                if (dateA !== dateB) {
+                    return dateB - dateA; // Date Descending
+                }
+                
+                // Same Date, sort by Time Descending (latest time on top)
+                return getSortTimeMinutes(b) - getSortTimeMinutes(a);
             });
 
             currentFilteredRecords = sortedBySaleDate;
