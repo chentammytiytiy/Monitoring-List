@@ -1349,18 +1349,18 @@
                 const table = document.getElementById('results-table');
                 if (!table) return;
                 const ths = table.querySelectorAll('thead th');
-                if (ths.length < 5) return;
+                if (ths.length < 3) return;
                 
                 let leftOffsets = [];
                 let currentLeft = 0;
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 3; i++) {
                     leftOffsets.push(currentLeft);
                     currentLeft += ths[i].offsetWidth;
                 }
                 
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 3; i++) {
                     ths[i].classList.add('sticky-col');
-                    if (i === 4) ths[i].classList.add('sticky-col-last');
+                    if (i === 2) ths[i].classList.add('sticky-col-last');
                     ths[i].style.left = leftOffsets[i] + 'px';
                 }
                 
@@ -1368,10 +1368,10 @@
                 trs.forEach(tr => {
                     const tds = tr.querySelectorAll('td');
                     if (tds.length === 1) return; // empty state
-                    for (let i = 0; i < 5; i++) {
+                    for (let i = 0; i < 3; i++) {
                         if (!tds[i]) continue;
                         tds[i].classList.add('sticky-col');
-                        if (i === 4) tds[i].classList.add('sticky-col-last');
+                        if (i === 2) tds[i].classList.add('sticky-col-last');
                         tds[i].style.left = leftOffsets[i] + 'px';
                     }
                 });
