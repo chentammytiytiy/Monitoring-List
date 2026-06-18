@@ -1129,7 +1129,7 @@
                 return match;
             });
 
-            // Re-sort data descending by "開賣日期" and "時間" (newest/latest at top, oldest/earliest at bottom)
+            // Re-sort data ascending by "開賣日期" and "時間" (oldest/earliest at top, newest/latest at bottom)
             const sortedBySaleDate = [...filtered].sort((a, b) => {
                 const getSortDate = (rec) => {
                     let dStr = rec['開賣日期'];
@@ -1178,11 +1178,11 @@
                 const dateB = getSortDate(b);
 
                 if (dateA !== dateB) {
-                    return dateB - dateA; // Date Descending
+                    return dateA - dateB; // Date Ascending
                 }
                 
-                // Same Date, sort by Time Descending (latest time on top)
-                return getSortTimeMinutes(b) - getSortTimeMinutes(a);
+                // Same Date, sort by Time Ascending (earliest time on top)
+                return getSortTimeMinutes(a) - getSortTimeMinutes(b);
             });
 
             currentFilteredRecords = sortedBySaleDate;
@@ -1718,7 +1718,7 @@
 
             let dataRows = '';
 
-            // Use the already sorted records (newest/latest at top, oldest/earliest at bottom)
+            // Use the already sorted records (oldest/earliest at top, newest/latest at bottom)
             const sortedRecords = [...currentFilteredRecords];
 
             // Map each column to match exact colors and modifications
