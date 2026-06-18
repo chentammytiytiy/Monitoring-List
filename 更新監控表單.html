@@ -927,6 +927,8 @@
         // 整批覆蓋 mode：action='save'
         // ====================================================
         async function saveToGAS(data) {
+            sessionStorage.removeItem('monitoring_data_cache');
+            sessionStorage.removeItem('monitoring_data_time');
             const payload = JSON.stringify({ action: 'save', data });
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -978,13 +980,33 @@
 
         // Helper: load data with retry
         async function loadData(retries = 2) {
+            const CACHE_KEY = 'monitoring_data_cache';
+            const CACHE_TIME_KEY = 'monitoring_data_time';
+            const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+            const now = new Date().getTime();
+            const cachedData = sessionStorage.getItem(CACHE_KEY);
+            const cachedTime = sessionStorage.getItem(CACHE_TIME_KEY);
+
+            if (cachedData && cachedTime && now - parseInt(cachedTime) < CACHE_TTL) {
+                try {
+                    return JSON.parse(cachedData);
+                } catch (e) {
+                    console.warn('Cache parsing failed', e);
+                }
+            }
+
             for (let i = 0; i <= retries; i++) {
                 try {
                     const response = await fetchWithTimeout(`${SCRIPT_URL}?t=${new Date().getTime()}`, {}, 30000);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const text = await response.text();
                     const data = JSON.parse(text);
-                    if (Array.isArray(data)) return data;
+                    if (Array.isArray(data)) {
+                        sessionStorage.setItem(CACHE_KEY, text);
+                        sessionStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
+                        return data;
+                    }
                     if (data && data.error) throw new Error(data.error);
                     return [];
                 } catch (err) {

@@ -476,8 +476,24 @@
             document.getElementById('calendar').innerHTML = '<div style="text-align:center; padding:3rem; color:var(--text-muted);">資料載入中，請稍候...</div>';
 
             try {
-                const response = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
-                allHistoricalRecords = await response.json();
+                const CACHE_KEY = 'monitoring_data_cache';
+                const CACHE_TIME_KEY = 'monitoring_data_time';
+                const CACHE_TTL = 5 * 60 * 1000;
+                const now = new Date().getTime();
+                const cachedData = sessionStorage.getItem(CACHE_KEY);
+                const cachedTime = sessionStorage.getItem(CACHE_TIME_KEY);
+
+                if (cachedData && cachedTime && now - parseInt(cachedTime) < CACHE_TTL) {
+                    allHistoricalRecords = JSON.parse(cachedData);
+                } else {
+                    const response = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
+                    const text = await response.text();
+                    allHistoricalRecords = JSON.parse(text);
+                    if (Array.isArray(allHistoricalRecords)) {
+                        sessionStorage.setItem(CACHE_KEY, text);
+                        sessionStorage.setItem(CACHE_TIME_KEY, now.toString());
+                    }
+                }
                 document.getElementById('calendar').innerHTML = ''; // clear loading text
             } catch (e) {
                 console.error("無法讀取資料庫資料:", e);
