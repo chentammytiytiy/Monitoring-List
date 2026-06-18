@@ -1289,11 +1289,36 @@
 
             let dataRows = '';
 
-            // Sort by sale date chronologically (oldest first)
+            // Sort by sale date chronologically (earliest at top, latest at bottom)
             const sortedRecords = [...currentFilteredRecords].sort((a, b) => {
-                const dateA = new Date(a['開賣日期'] || '9999/12/31');
-                const dateB = new Date(b['開賣日期'] || '9999/12/31');
-                return dateA - dateB;
+                const getD = (r) => {
+                    let dStr = String(r['開賣日期'] || '9999/12/31').split(' (')[0].trim();
+                    const dt = new Date(dStr);
+                    return isNaN(dt.getTime()) ? 0 : dt.setHours(0, 0, 0, 0);
+                };
+                const getT = (r) => {
+                    let val = r['時間'];
+                    if (!val) return 9999;
+                    let str = String(val).trim();
+                    if (str.includes(':')) {
+                        let parts = str.split(':');
+                        if (parts.length >= 2) {
+                            let hhStr = parts[0].trim();
+                            let mmStr = parts[1].trim();
+                            if (hhStr.includes(' ')) { hhStr = hhStr.split(' ').pop(); }
+                            if (hhStr.includes('T')) { hhStr = hhStr.split('T').pop(); }
+                            const hh = parseInt(hhStr, 10);
+                            const mm = parseInt(mmStr, 10);
+                            if (!isNaN(hh) && !isNaN(mm)) return hh * 60 + mm;
+                        }
+                    }
+                    return 9999;
+                };
+                
+                const dateA = getD(a);
+                const dateB = getD(b);
+                if (dateA !== dateB) return dateA - dateB;
+                return getT(a) - getT(b);
             });
 
             // Map each column to match exact colors and modifications
