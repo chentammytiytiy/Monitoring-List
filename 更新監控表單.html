@@ -1573,12 +1573,7 @@
                 return;
             }
 
-            // Resend Email with the updated single record
-            try {
-                sendUpdateEmailNotification([record]);
-            } catch (err) {
-                console.error("發送信件失敗:", err);
-            }
+            // Email sending has been disabled upon re-editing
 
             alert('已成功更新資料，畫面即將重新整理顯示最新紀錄。');
             closeEditModal();
