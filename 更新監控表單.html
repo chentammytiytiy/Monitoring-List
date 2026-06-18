@@ -1129,18 +1129,22 @@
                 return match;
             });
 
-            // Re-sort data descending by "開賣日期" (newest first), and ascending by "時間" (earliest first)
+            // Re-sort data descending by "開賣日期" and "時間" (newest/latest at top, oldest/earliest at bottom)
             const sortedBySaleDate = [...filtered].sort((a, b) => {
                 const getSortDate = (rec) => {
-                    if (rec['開賣日期']) {
-                        const d = new Date(rec['開賣日期']);
+                    let dStr = rec['開賣日期'];
+                    if (dStr) {
+                        dStr = String(dStr).split(' (')[0].trim();
+                        const d = new Date(dStr);
                         if (!isNaN(d.getTime())) {
                             d.setHours(0, 0, 0, 0);
                             return d.getTime();
                         }
                     }
-                    if (rec['申請時間']) {
-                        const d = new Date(rec['申請時間'].replace('(已更新)', '').trim());
+                    let aStr = rec['申請時間'];
+                    if (aStr) {
+                        aStr = String(aStr).replace('(已更新)', '').split(' (')[0].trim();
+                        const d = new Date(aStr);
                         if (!isNaN(d.getTime())) {
                             d.setHours(0, 0, 0, 0);
                             return d.getTime();
@@ -1714,12 +1718,8 @@
 
             let dataRows = '';
 
-            // Sort by sale date chronologically (oldest first)
-            const sortedRecords = [...currentFilteredRecords].sort((a, b) => {
-                const dateA = new Date(a['開賣日期'] || '9999/12/31');
-                const dateB = new Date(b['開賣日期'] || '9999/12/31');
-                return dateA - dateB;
-            });
+            // Use the already sorted records (newest/latest at top, oldest/earliest at bottom)
+            const sortedRecords = [...currentFilteredRecords];
 
             // Map each column to match exact colors and modifications
             sortedRecords.forEach((r, idx) => {
