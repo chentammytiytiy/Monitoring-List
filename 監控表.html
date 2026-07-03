@@ -700,8 +700,9 @@
 					</div>
 
 					<div class="form-group">
-						<label for="monitorLevel">監控等級</label>
-						<select id="monitorLevel" name="監控等級">
+						<label for="monitorLevel">監控等級 <span style="color:#f472b6">*</span></label>
+						<select id="monitorLevel" name="監控等級" required>
+							<option value="" disabled selected>請選擇</option>
 							<option value="小">小</option>
 							<option value="中">中</option>
 							<option value="大">大</option>
@@ -900,6 +901,7 @@
 			{ id: 'programCode',       label: 'A節目代碼 / E活動分類' },
 			{ id: 'eventName',         label: '活動名稱' },
 			{ id: 'ticketCount',       label: '可售張數' },
+			{ id: 'monitorLevel',      label: '監控等級' },
 			{ id: 'monitorPersonnel',  label: '負責業務' },
 		];
 
