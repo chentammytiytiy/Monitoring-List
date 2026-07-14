@@ -829,7 +829,15 @@
 			</table>
 		</div>
 
-		<div class="buttons" style="justify-content: flex-end; margin-top: 1rem;">
+		<div class="buttons" style="justify-content: flex-end; margin-top: 1rem; display: flex; gap: 1rem;">
+			<button type="button" class="btn-cancel" id="btn-save-draft">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+					<polyline points="17 21 17 13 7 13 7 21"></polyline>
+					<polyline points="7 3 7 8 15 8"></polyline>
+				</svg>
+				儲存草稿
+			</button>
 			<button type="button" class="btn-save" id="btn-submit-all"
 				style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px -3px rgba(16, 185, 129, 0.4);">
 				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -966,6 +974,28 @@
 		});
 		let recordsList = [];
 		let editIndex = -1;
+		let currentUser = '';
+
+		function saveDraft() {
+			if (!currentUser) return;
+			localStorage.setItem(`draft_records_${currentUser}`, JSON.stringify(recordsList));
+			alert('已成功儲存草稿！下次登入可繼續編輯。');
+		}
+
+		function loadDraft() {
+			if (!currentUser) return;
+			const draft = localStorage.getItem(`draft_records_${currentUser}`);
+			if (draft) {
+				try {
+					recordsList = JSON.parse(draft);
+					if (recordsList.length > 0) {
+						updateRecordsTable();
+					}
+				} catch(e) {
+					console.error('Failed to load draft:', e);
+				}
+			}
+		}
 
 		// ====================================================
 		// 使用 POST 請求 + JSON Body 寫入 GAS（解決 URL 長度限制）
@@ -1021,6 +1051,9 @@
 				resetFormHelper();
 			}
 		});
+
+		// Save Draft button behavior
+		document.getElementById('btn-save-draft').addEventListener('click', saveDraft);
 
 		// Cancel Edit button behavior
 		document.getElementById('btn-cancel-edit').addEventListener('click', function () {
@@ -1288,6 +1321,9 @@
 				if (saveResult && saveResult.error) {
 					throw new Error(saveResult.error);
 				}
+				if (currentUser) {
+					localStorage.removeItem(`draft_records_${currentUser}`);
+				}
 				btn.innerHTML = origText;
 			} catch (e) {
 				console.error('Database save failed', e);
@@ -1486,6 +1522,8 @@ ${mailHtmlBody}
 				window.location.href = 'login.html';
 				return;
 			}
+			currentUser = session.username;
+			loadDraft();
 			if (session.role !== 'admin') {
 				const perms = session.permissions || [];
 				if (!perms.includes('監控申請表單')) {
