@@ -468,6 +468,24 @@
             cursor: not-allowed;
         }
 
+        .btn-copy {
+            background: #bae6fd;
+            color: #0369a1;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            margin-right: 0.2rem;
+        }
+
+        .btn-copy:hover {
+            background: #7dd3fc;
+            color: #0c4a6e;
+        }
+
         .btn-edit {
             background: #e2e8f0;
             color: #475569;
@@ -1358,6 +1376,7 @@
 						<td class="apply-time" style="${c('申請時間')}">${fApply}</td>
 						<td class="col-modifier" style="${c('異動人員')}">${r['異動人員'] || '-'}</td>
                         <td>
+                            <button class="btn-copy" onclick="copyRow(this, ${origIdx})">複製</button>
                             <button class="btn-edit" onclick="editRow(this, ${origIdx})">編輯</button>
                             <button class="btn-delete" onclick="deleteRow(this, ${origIdx})">刪除</button>
                         </td>
@@ -1405,8 +1424,23 @@
         }
 
         let currentEditingIndex = -1;
+        let isCopyMode = false;
 
         function editRow(btn, idx) {
+            isCopyMode = false;
+            document.querySelector('.modal-header h2').innerText = '編輯監控資料';
+            populateModal(idx);
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        function copyRow(btn, idx) {
+            isCopyMode = true;
+            document.querySelector('.modal-header h2').innerText = '複製並新增監控資料';
+            populateModal(idx);
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        function populateModal(idx) {
             const record = allHistoricalRecords[idx];
             currentEditingIndex = idx;
 
@@ -1472,8 +1506,6 @@
                     document.getElementById('modal-' + col).value = val;
                 }
             });
-
-            document.getElementById('edit-modal').style.display = 'flex';
         }
 
         function closeEditModal() {
@@ -1506,9 +1538,17 @@
             const newOwner = document.getElementById('modal-owner').value.trim();
             const newOp = document.getElementById('modal-op').value.trim();
 
-            const record = allHistoricalRecords[idx];
-            let mods = record._modified || [];
-            if (typeof mods === 'string') mods = mods.split(',');
+            let record;
+            let mods;
+
+            if (isCopyMode) {
+                record = {};
+                mods = [];
+            } else {
+                record = allHistoricalRecords[idx];
+                mods = record._modified || [];
+                if (typeof mods === 'string') mods = mods.split(',');
+            }
 
             const updates = [
                 { k: '開賣日期', v: newSaleDate },
@@ -1530,35 +1570,48 @@
             ];
 
             updates.forEach(u => {
-                if (record[u.k] !== u.v) {
-                    if (!mods.includes(u.k)) mods.push(u.k);
+                if (isCopyMode) {
                     record[u.k] = u.v;
+                } else {
+                    if (record[u.k] !== u.v) {
+                        if (!mods.includes(u.k)) mods.push(u.k);
+                        record[u.k] = u.v;
+                    }
                 }
             });
 
             const days = ['日', '一', '二', '三', '四', '五', '六'];
             if (newSaleDate) {
                 const dayIndex = new Date(newSaleDate).getDay();
-                if (!isNaN(dayIndex) && record['星期'] !== days[dayIndex]) {
-                    record['星期'] = days[dayIndex];
+                if (!isNaN(dayIndex)) {
+                    if (isCopyMode || record['星期'] !== days[dayIndex]) {
+                        record['星期'] = days[dayIndex];
+                    }
                 }
             } else {
                 record['星期'] = '';
             }
 
-            record._modified = mods;
+            if (!isCopyMode) {
+                record._modified = mods;
+            }
+
             const now = new Date();
             const nowY = now.getFullYear();
             const nowM = String(now.getMonth() + 1).padStart(2, '0');
             const nowD = String(now.getDate()).padStart(2, '0');
             const nowH = String(now.getHours()).padStart(2, '0');
             const nowMin = String(now.getMinutes()).padStart(2, '0');
-            record['申請時間'] = `${nowY}/${nowM}/${nowD} ${nowH}:${nowMin} (已更新)`;
+            record['申請時間'] = isCopyMode ? `${nowY}/${nowM}/${nowD} ${nowH}:${nowMin}` : `${nowY}/${nowM}/${nowD} ${nowH}:${nowMin} (已更新)`;
             try {
                 const s = sessionStorage.getItem(SESSION_KEY);
                 const sess = s ? JSON.parse(s) : {};
                 record['異動人員'] = sess.name || sess.username || '未知';
             } catch(e) {}
+
+            if (isCopyMode) {
+                allHistoricalRecords.push(record);
+            }
 
             try {
                 btn.textContent = '儲存中...';
