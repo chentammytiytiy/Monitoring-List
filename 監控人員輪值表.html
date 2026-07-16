@@ -768,19 +768,20 @@
                     }
                 }
 
-                const startDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hr, min);
-                const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 預設加1小時
+                // Parse as Asia/Taipei (GMT+8) and convert to UTC for Google Calendar
+                const utcDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), hr - 8, min));
+                const endUtcDate = new Date(utcDate.getTime() + 60 * 60 * 1000); // 預設加1小時
 
-                const formatGoogleDate = (d) => {
-                    return d.getFullYear() +
-                        String(d.getMonth() + 1).padStart(2, '0') +
-                        String(d.getDate()).padStart(2, '0') + 'T' +
-                        String(d.getHours()).padStart(2, '0') +
-                        String(d.getMinutes()).padStart(2, '0') + '00';
+                const formatGoogleDateUTC = (d) => {
+                    return d.getUTCFullYear() +
+                        String(d.getUTCMonth() + 1).padStart(2, '0') +
+                        String(d.getUTCDate()).padStart(2, '0') + 'T' +
+                        String(d.getUTCHours()).padStart(2, '0') +
+                        String(d.getUTCMinutes()).padStart(2, '0') + '00Z';
                 };
 
-                startStr = formatGoogleDate(startDate);
-                endStr = formatGoogleDate(endDate);
+                startStr = formatGoogleDateUTC(utcDate);
+                endStr = formatGoogleDateUTC(endUtcDate);
             }
 
             let detailsText = `開賣日期: ${dateStr} ${timeStr}`;
