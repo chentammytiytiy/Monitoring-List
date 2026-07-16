@@ -784,8 +784,7 @@
                 endStr = formatGoogleDateUTC(endUtcDate);
             }
 
-            let detailsText = `開賣日期: ${dateStr} ${timeStr}`;
-            let url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&details=${encodeURIComponent(detailsText)}&ctz=Asia/Taipei`;
+            let url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&ctz=Asia/Taipei`;
             if (startStr && endStr) {
                 url += `&dates=${startStr}/${endStr}`;
             }
