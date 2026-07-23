@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>監控表更新</title>
+</head>
+<body>
+    <button id="updateBtn">更新資料到試算表</button>
+
+    <script>
+        document.getElementById('updateBtn').addEventListener('click', function() {
+            // 使用使用者提供的 Web App URL
+            const url = 'https://script.google.com/macros/s/AKfycbyKAKdT8uMsLjhKEXYJueCuN72uggHihcBSy396BHirI6bQqz592fB-v4Y0DAmgzyfILQ/exec';
+            
+            // 準備要傳送的資料
+            const formData = new URLSearchParams();
+            formData.append('data1', '測試監控狀態');
+            formData.append('data2', '運作正常');
+
+            // 發送 POST 請求
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.result === 'success') {
+                    alert('資料更新成功！');
+                }
+            })
+            .catch(error => {
+                console.error('更新失敗:', error);
+                alert('更新失敗，請檢查網路連線或設定。');
+            });
+        });
+    </script>
+</body>
+</html>
