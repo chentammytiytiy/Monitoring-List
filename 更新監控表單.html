@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查詢及更新監控表單</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --input-bg: #ffffff;
+            color-scheme: light;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', "微軟正黑體", sans-serif;
+            background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 200px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0.8rem;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            flex: 1;
+        }
+
+        .sidebar-menu a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-menu a:hover {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+        }
+
+        .sidebar-menu a.active {
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            color: white;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 0.4rem 0;
+        }
+
+        .sidebar-logout a {
+            text-decoration: none;
+            color: #ef4444;
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar-logout a:hover {
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .sidebar-user {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 0.5rem 0.5rem 0;
+            line-height: 1.4;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 98%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 2rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            background: rgba(79, 70, 229, 0.1);
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: rgba(79, 70, 229, 0.2);
+        }
+
+        .search-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            background: rgba(0, 0, 0, 0.02);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            align-items: flex-end;
+            max-width: fit-content;
+        }
+
+        .date-range-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .date-range-group input {
+            width: 105px;
+            text-align: center;
+            padding: 0.6rem 0.5rem;
+        }
+
+        .date-range-group span {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: var(--text-muted);
+        }
+
+        input,
+        select {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            outline: none;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .search-btn-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.8rem;
+        }
+
+        button.btn-clear {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            height: 35px;
+            min-width: 80px;
+            transition: all 0.2s;
+        }
+
+        button.btn-clear:hover {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.3);
+        }
+
+        button.btn-search {
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            height: 35px;
+            min-width: 90px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+        }
+
+        button.btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        /* Table Styling */
+        .table-wrapper {
+            overflow: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            max-height: calc(100vh - 340px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        thead {
+            background: #f1f5f9;
+        }
+
+        th,
+        td {
+            padding: 0.3rem 0.4rem;
+            text-align: left;
+            font-size: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            letter-spacing: -0.01em;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            background: #f1f5f9;
+            z-index: 10;
+        }
+
+        td {
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        td.col-name {
+            white-space: pre-wrap;
+            word-break: break-all;
+            min-width: 15rem;
+            max-width: 15rem;
+        }
+
+        td.col-note {
+            white-space: pre-wrap;
+            word-break: break-all;
+            min-width: 15rem;
+            max-width: 15rem;
+        }
+
+        td.col-saleDate {
+            white-space: nowrap;
+            min-width: 100px;
+        }
+
+        td.col-time {
+            white-space: nowrap;
+            min-width: 50px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        th:last-child,
+        td:last-child {
+            border-right: none;
+        }
+
+        tbody tr {
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .sticky-col {
+            position: sticky;
+            z-index: 5;
+        }
+        thead th.sticky-col {
+            background: #f1f5f9;
+            z-index: 15;
+            top: 0;
+        }
+        tbody td.sticky-col {
+            background: #fff;
+        }
+        tbody tr:hover td.sticky-col {
+            background: #f8fafc;
+        }
+        .sticky-col-last {
+            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+            border-right: 1px solid var(--border-color) !important;
+        }
+
+        #result-count {
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .apply-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Pagination Styling */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .page-btn {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .page-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-copy {
+            background: #bae6fd;
+            color: #0369a1;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            margin-right: 0.2rem;
+        }
+
+        .btn-copy:hover {
+            background: #7dd3fc;
+            color: #0c4a6e;
+        }
+
+        .btn-edit {
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .btn-edit:hover {
+            background: #cbd5e1;
+            color: #1e293b;
+        }
+
+        .btn-save {
+            background: #34d399;
+            color: white;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            display: none;
+        }
+
+        .btn-save:hover {
+            background: #10b981;
+        }
+
+        .btn-delete {
+            background: #fecaca;
+            color: #991b1b;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            margin-left: 0.2rem;
+        }
+
+        .btn-delete:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .cell-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.2rem;
+            font-size: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: #F8FAFC;
+        }
+
+        /* Modal Styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-content {
+            background: #fff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+        .btn-close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .btn-close-modal:hover {
+            color: #ef4444;
+        }
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.2rem;
+        }
+        .modal-footer {
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            background: #f8fafc;
+            border-radius: 0 0 16px 16px;
+        }
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-cancel:hover {
+            background: #cbd5e1;
+        }
+        .btn-save-modal {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+        }
+        .btn-save-modal:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+        }
+        .modal-body .form-group label {
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .modal-body input, .modal-body select, .modal-body textarea {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-title">系統選單</div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="監控表.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    監控申請表單
+                </a>
+            </li>
+            <li>
+                <a href="更新監控表單.html" class="active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    查詢及更新監控表單
+                </a>
+            </li>
+            <li>
+                <a href="監控人員輪值表.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    監控人員輪值表
+                </a>
+            </li>
+            <li>
+                <a href="售票行事曆.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    售票行事曆
+                </a>
+            </li>
+            <li id="li-admin-link" style="display:none;">
+                <a href="帳號管理.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><line x1="17" y1="11" x2="23" y2="11"></line><line x1="20" y1="8" x2="20" y2="14"></line></svg>
+                    帳號權限管理
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-user" id="sidebar-user-info"></div>
+        <div class="sidebar-logout">
+            <a href="#" id="btn-logout">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                登出
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+        <div class="header-row">
+            <h1>查詢及更新監控表單</h1>
+            <div style="display:flex; gap: 0.5rem;">
+                <button type="button" class="nav-link" id="btn-generate-mail" style="border:none; cursor:pointer;" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    產生通知信
+                </button>
+                <button type="button" class="nav-link" id="btn-export-excel" style="border:none; cursor:pointer;"
+                    disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    匯出 Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="search-grid">
+            <div class="form-group">
+                <label>開賣日期區間</label>
+                <div class="date-range-group">
+                    <input type="text" id="search-date-start" placeholder="yyyy/mm/dd" onfocus="this.type='date'" onblur="if(!this.value) this.type='text'">
+                    <span>至</span>
+                    <input type="text" id="search-date-end" placeholder="yyyy/mm/dd" onfocus="this.type='date'" onblur="if(!this.value) this.type='text'">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="search-code">節目代碼 / 活動名稱</label>
+                <input type="text" id="search-code" placeholder="輸入關鍵字...">
+            </div>
+
+            <div class="form-group">
+                <label for="search-system">系統別</label>
+                <select id="search-system">
+                    <option value="">全部系統</option>
+                    <option value="A系統">A系統</option>
+                    <option value="E系統">E系統</option>
+                    <option value="交通">交通</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="search-owner">負責業務</label>
+                <input type="text" id="search-owner" placeholder="輸入關鍵字...">
+            </div>
+
+            <div class="search-btn-container">
+                <button type="button" class="btn-clear" id="btn-clear">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    清除
+                </button>
+                <button type="button" class="btn-search" id="btn-search">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    查詢
+                </button>
+            </div>
+        </div>
+
+        <div id="result-count"></div>
+
+        <div class="table-wrapper">
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th class="sticky-col"><input type="checkbox" id="selectAllRows" onclick="toggleAllRows(this)"></th>
+                        <th>開賣日期</th>
+                        <th>時間</th>
+                        <th>活動名稱</th>
+                        <th>售票/核銷</th>
+                        <th>監控等級</th>
+                        <th>系統別</th>
+                        <th>A節目代碼/E活動分類</th>
+                        <th>機器等級</th>
+                        <th>排隊機制</th>
+                        <th>售票通路</th>
+                        <th>機台流管</th>
+                        <th>可售張數</th>
+                        <th>其它單位監控</th>
+                        <th>特別說明</th>
+                        <th>負責業務</th>
+                        <th>建檔人員</th>
+                        <th>申請時間</th>
+                        <th>異動人員</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="results-tbody">
+                    <!-- Data will be populated here -->
+                    <tr>
+                        <td colspan="20" class="empty-state">請點擊上方查詢按鈕或輸入條件後查詢</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="pagination" class="pagination-container"></div>
+    </div>
+    </div>
+    
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>編輯監控資料</h2>
+                <button type="button" class="btn-close-modal" onclick="closeEditModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>開賣日期</label>
+                            <input type="date" id="modal-saleDate">
+                        </div>
+                        <div class="form-group">
+                            <label>時間 (時:分)</label>
+                            <div style="display:flex; gap: 5px;">
+                                <input type="text" id="modal-time-hh" list="hh-options" placeholder="時" maxlength="2" onchange="if(this.value) this.value=this.value.padStart(2,'0')" pattern="^([0-1]?[0-9]|2[0-3])$" style="text-align: center;">
+                                <span style="display:flex; align-items:center; font-weight:bold;">:</span>
+                                <input type="text" id="modal-time-mm" list="mm-options" placeholder="分" maxlength="2" onchange="if(this.value) this.value=this.value.padStart(2,'0')" pattern="^[0-5][0-9]$" style="text-align: center;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>售票/核銷</label>
+                            <select id="modal-action">
+                                <option value="售票">售票</option>
+                                <option value="核銷">核銷</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>監控等級</label>
+                            <select id="modal-level">
+                                <option value="小">小</option>
+                                <option value="中">中</option>
+                                <option value="大">大</option>
+                                <option value="免監控">免監控</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>系統別</label>
+                            <select id="modal-sys">
+                                <option value="A系統">A系統</option>
+                                <option value="E系統">E系統</option>
+                                <option value="交通">交通</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>A節目代碼/E活動分類</label>
+                            <input type="text" id="modal-code">
+                        </div>
+                        <div class="form-group">
+                            <label>活動名稱</label>
+                            <input type="text" id="modal-name">
+                        </div>
+                        <div class="form-group">
+                            <label>機器等級</label>
+                            <select id="modal-machine">
+                                <option value="小">小</option>
+                                <option value="中">中</option>
+                                <option value="大">大</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>排隊機制</label>
+                            <select id="modal-queue">
+                                <option value="無">無</option>
+                                <option value="一般排隊">一般排隊</option>
+                                <option value="流管畫面">流管畫面</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>售票通路</label>
+                            <select id="modal-channel">
+                                <option value="網站">網站</option>
+                                <option value="機台">機台</option>
+                                <option value="網站+機台">網站+機台</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>機台流管</label>
+                            <input type="number" id="modal-machineFlow">
+                        </div>
+                        <div class="form-group">
+                            <label>可售張數</label>
+                            <input type="text" id="modal-tickets">
+                        </div>
+                        <div class="form-group">
+                            <label>其它單位監控</label>
+                            <input type="text" id="modal-otherMonitor">
+                        </div>
+                        <div class="form-group">
+                            <label>負責業務</label>
+                            <select id="modal-owner">
+                                <option value="蔣璧雲">蔣璧雲</option>
+                                <option value="王意涵">王意涵</option>
+                                <option value="薛雅心">薛雅心</option>
+                                <option value="洪瑞祥">洪瑞祥</option>
+                                <option value="李心榆">李心榆</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>建檔OP</label>
+                            <select id="modal-op">
+                                <option value="何乾源">何乾源</option>
+                                <option value="陳乃菁">陳乃菁</option>
+                                <option value="曾雅鈞">曾雅鈞</option>
+                                <option value="鄭婷芝">鄭婷芝</option>
+                                <option value="王馨瑤">王馨瑤</option>
+                                <option value="賴怡儒">賴怡儒</option>
+                                <option value="陳思穎">陳思穎</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>特別說明</label>
+                        <textarea id="modal-note" rows="3" style="width: 100%; resize: vertical;"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">取消</button>
+                <button type="button" class="btn-save-modal" id="btn-save-modal" onclick="confirmSaveModal()">儲存變更</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAE9D4xxmt5YqmvoUJjWXgzuGWykP9HtTGeaURK2Mwjwn9NEYp0SbgNJlnH0uw2eajag/exec';
+        let allHistoricalRecords = [];
+        let currentFilteredRecords = []; // Keep track of the currently displayed records for Excel export
+        let currentPage = 1;
+        const itemsPerPage = 50;
+
+        // ====================================================
+        // 使用 POST 請求 + JSON Body 寫入 GAS（解決 URL 長度限制）
+        // 整批覆蓋 mode：action='save'
+        // ====================================================
+        async function saveToGAS(data) {
+            sessionStorage.removeItem('monitoring_data_cache');
+            sessionStorage.removeItem('monitoring_data_time');
+            const payload = JSON.stringify({ action: 'save', data });
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: payload,
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                const text = await response.text();
+                try { 
+                    const p = JSON.parse(text); 
+                    if (p.error) throw new Error(p.error);
+                    return p;
+                } catch(e) { 
+                    if (e.message !== "Unexpected token" && !e.message.startsWith("Unexpected")) {
+                        if (text.includes('"error"')) {
+                            throw new Error("Server returned an error but parsing failed: " + text.substring(0, 100));
+                        }
+                    }
+                    if (e.message && e.message.includes("error")) throw e;
+                    return { success: true, raw: text }; 
+                }
+            } catch (err) {
+                console.warn('POST 失敗，嘗試 GET 備用:', err.message);
+                const jsonStr2 = JSON.stringify(data);
+                if (jsonStr2.length < 6000) {
+                    const url = `${SCRIPT_URL}?action=save&data=${encodeURIComponent(jsonStr2)}`;
+                    const r = await fetch(url);
+                    const resJson = await r.json();
+                    if (resJson.error) throw new Error(resJson.error);
+                    return resJson;
+                }
+                throw err;
+            }
+        }
+
+        // Helper: fetch with timeout
+        async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(timer);
+                return response;
+            } catch (err) {
+                clearTimeout(timer);
+                throw err;
+            }
+        }
+
+        // Helper: load data with retry
+        async function loadData(retries = 2) {
+            const CACHE_KEY = 'monitoring_data_cache';
+            const CACHE_TIME_KEY = 'monitoring_data_time';
+            const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+            const now = new Date().getTime();
+            const cachedData = sessionStorage.getItem(CACHE_KEY);
+            const cachedTime = sessionStorage.getItem(CACHE_TIME_KEY);
+
+            if (cachedData && cachedTime && now - parseInt(cachedTime) < CACHE_TTL) {
+                try {
+                    return JSON.parse(cachedData);
+                } catch (e) {
+                    console.warn('Cache parsing failed', e);
+                }
+            }
+
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const response = await fetchWithTimeout(`${SCRIPT_URL}?t=${new Date().getTime()}`, {}, 30000);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const text = await response.text();
+                    const data = JSON.parse(text);
+                    if (Array.isArray(data)) {
+                        sessionStorage.setItem(CACHE_KEY, text);
+                        sessionStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
+                        return data;
+                    }
+                    if (data && data.error) throw new Error(data.error);
+                    return [];
+                } catch (err) {
+                    console.warn(`第 ${i + 1} 次載入失敗:`, err.message);
+                    if (i < retries) {
+                        await new Promise(r => setTimeout(r, 2000)); // 等待 2 秒後重試
+                    } else {
+                        throw err;
+                    }
+                }
+            }
+        }
+
+        // Initialize logic
+        window.onload = async function () {
+            document.getElementById('results-tbody').innerHTML = '<tr><td colspan="24" class="empty-state">資料載入中，請稍候...</td></tr>';
+            try {
+                allHistoricalRecords = await loadData(2);
+            } catch (e) {
+                console.error("無法讀取資料庫資料:", e);
+                document.getElementById('results-tbody').innerHTML =
+                    `<tr><td colspan="24" class="empty-state" style="color:red;">
+                        ⚠️ 讀取資料庫失敗（${e.message || '網路逾時'}），
+                        <a href="javascript:location.reload()" style="color:#4f46e5;font-weight:bold;">請點此重整頁面</a>
+                    </td></tr>`;
+                // 仍然執行搜尋（顯示空結果）
+                document.getElementById('btn-search').click();
+                return;
+            }
+
+            // 觸發查詢以正確渲染結果
+            document.getElementById('btn-search').click();
+        };
+
+        // Clear button click
+        document.getElementById('btn-clear').addEventListener('click', function () {
+            document.getElementById('search-date-start').value = '';
+            document.getElementById('search-date-end').value = '';
+            document.getElementById('search-code').value = '';
+            document.getElementById('search-system').value = '';
+            document.getElementById('search-owner').value = '';
+            
+            // Reset dates placeholder behavior
+            document.getElementById('search-date-start').type = 'text';
+            document.getElementById('search-date-end').type = 'text';
+
+            document.getElementById('btn-search').click();
+        });
+
+        document.getElementById('btn-search').addEventListener('click', function () {
+            const sDateStart = document.getElementById('search-date-start').value.trim();
+            const sDateEnd = document.getElementById('search-date-end').value.trim();
+            const sCodeOrName = document.getElementById('search-code').value.trim().toLowerCase();
+            const sSystem = document.getElementById('search-system').value;
+            const sOwner = document.getElementById('search-owner').value.trim().toLowerCase();
+
+            // Convert boundaries to Comparable Date objects if they exist
+            let dStart = null, dEnd = null;
+            if (sDateStart) dStart = new Date(sDateStart);
+            if (sDateEnd) {
+                // To include the entire end day, we could technically append 23:59:59 but 
+                // since the record saleDate doesn't usually have a time component, simple Date comparison is fine.
+                dEnd = new Date(sDateEnd);
+            }
+
+            const hasConditions = sDateStart || sDateEnd || sCodeOrName || sSystem || sOwner;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const filtered = allHistoricalRecords.filter(record => {
+                let match = true;
+                
+                const recDateStr = record['開賣日期'];
+                let recDate = null;
+                let isValidDate = false;
+
+                if (recDateStr) {
+                    recDate = new Date(recDateStr);
+                    if (!isNaN(recDate.getTime())) {
+                        isValidDate = true;
+                    }
+                }
+
+                // Default filter: if no conditions, hide records with sale date before today
+                if (!hasConditions) {
+                    if (!isValidDate) {
+                        // If no valid sale date, we can either hide or show. Let's hide it to keep list clean,
+                        // or show it if we strictly only hide past dates. Usually sale date is required.
+                        match = false; 
+                    } else {
+                        const recDateOnly = new Date(recDate.getTime());
+                        recDateOnly.setHours(0, 0, 0, 0);
+                        if (recDateOnly < today) {
+                            match = false;
+                        }
+                    }
+                }
+
+                // 1. Date Range check
+                if (dStart || dEnd) {
+                    const recDateStr = record['開賣日期'];
+                    if (!recDateStr) {
+                        match = false;
+                    } else {
+                        // Attempt to parse exactly "yyyy/mm/dd" correctly
+                        // The recorded format is usually yyyy/mm/dd mapping cleanly
+                        const recDate = new Date(recDateStr);
+                        if (!isNaN(recDate.getTime())) {
+                            if (dStart && recDate < dStart) match = false;
+                            if (dEnd && recDate > dEnd) match = false;
+                        } else {
+                            // Fallback string manipulation if parsing failed
+                            match = false; // hard to compare range on totally malformed date strings
+                        }
+                    }
+                }
+
+                // 2. Code or Name check (A節目代碼/E活動分類 OR 活動名稱)
+                if (sCodeOrName && match) {
+                    const code = (record['A節目代碼/E活動分類'] || '').toLowerCase();
+                    const name = (record['活動名稱'] || '').toLowerCase();
+                    if (!code.includes(sCodeOrName) && !name.includes(sCodeOrName)) {
+                        match = false;
+                    }
+                }
+
+                // 3. System check
+                if (sSystem && match) {
+                    if (record['系統別'] !== sSystem) {
+                        match = false;
+                    }
+                }
+
+                // 4. Owner check
+                if (sOwner && match) {
+                    const owner = (record['負責業務'] || '').toLowerCase();
+                    if (!owner.includes(sOwner)) {
+                        match = false;
+                    }
+                }
+
+                return match;
+            });
+
+            // Re-sort data ascending by "開賣日期" and "時間" (oldest/earliest at top, newest/latest at bottom)
+            const sortedBySaleDate = [...filtered].sort((a, b) => {
+                const getSortDate = (rec) => {
+                    let dStr = rec['開賣日期'];
+                    if (dStr) {
+                        dStr = String(dStr).split(' (')[0].trim();
+                        const d = new Date(dStr);
+                        if (!isNaN(d.getTime())) {
+                            d.setHours(0, 0, 0, 0);
+                            return d.getTime();
+                        }
+                    }
+                    let aStr = rec['申請時間'];
+                    if (aStr) {
+                        aStr = String(aStr).replace('(已更新)', '').split(' (')[0].trim();
+                        const d = new Date(aStr);
+                        if (!isNaN(d.getTime())) {
+                            d.setHours(0, 0, 0, 0);
+                            return d.getTime();
+                        }
+                    }
+                    return 0;
+                };
+
+                const getSortTimeMinutes = (rec) => {
+                    let val = rec['時間'];
+                    if (!val) return 9999;
+                    let str = String(val).trim();
+                    if (str.includes(':')) {
+                        let parts = str.split(':');
+                        if (parts.length >= 2) {
+                            let hhStr = parts[0].trim();
+                            let mmStr = parts[1].trim();
+                            if (hhStr.includes(' ')) { hhStr = hhStr.split(' ').pop(); }
+                            if (hhStr.includes('T')) { hhStr = hhStr.split('T').pop(); }
+                            const hh = parseInt(hhStr, 10);
+                            const mm = parseInt(mmStr, 10);
+                            if (!isNaN(hh) && !isNaN(mm)) {
+                                return hh * 60 + mm;
+                            }
+                        }
+                    }
+                    return 9999;
+                };
+
+                const dateA = getSortDate(a);
+                const dateB = getSortDate(b);
+
+                if (dateA !== dateB) {
+                    return dateA - dateB; // Date Ascending
+                }
+                
+                // Same Date, sort by Time Ascending (earliest time on top)
+                return getSortTimeMinutes(a) - getSortTimeMinutes(b);
+            });
+
+            currentFilteredRecords = sortedBySaleDate;
+            currentPage = 1; // Reset to page 1 on new search
+            renderTablePaginated();
+
+            // Enable/Disable Excel button based on results
+            const excelBtn = document.getElementById('btn-export-excel');
+            if (sortedBySaleDate.length > 0) {
+                excelBtn.removeAttribute('disabled');
+                excelBtn.style.opacity = '1';
+                excelBtn.style.cursor = 'pointer';
+            } else {
+                excelBtn.setAttribute('disabled', 'true');
+                excelBtn.style.opacity = '0.5';
+                excelBtn.style.cursor = 'not-allowed';
+            }
+        });
+
+        function changePage(page) {
+            currentPage = page;
+            renderTablePaginated();
+        }
+
+        function renderPaginationControls(totalItems) {
+            const paginationDiv = document.getElementById('pagination');
+            if (totalItems <= itemsPerPage) {
+                paginationDiv.innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            let html = `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">上一頁</button>`;
+
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+
+            html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">下一頁</button>`;
+
+            paginationDiv.innerHTML = html;
+        }
+
+        // --- Date Format Helpers ---
+        function formatApplyTime(val) {
+            if (!val) return '-';
+            let isUpdated = val.includes('(已更新)') ? ' (已更新)' : '';
+            let dateStr = val.replace('(已更新)', '').trim();
+            let d = new Date(dateStr);
+            if (isNaN(d.getTime())) return val;
+            
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd} ${hh}:${min}${isUpdated}`;
+        }
+
+        function formatSaleDateStr(val) {
+            if (!val) return '';
+            let cleanVal = String(val).split(' (')[0];
+            let d = new Date(cleanVal);
+            if (isNaN(d.getTime())) return val;
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd}`;
+        }
+
+        function formatTimeHM(val) {
+            if (!val) return '-';
+            let str = String(val).trim();
+            if (str.includes(':')) {
+                let parts = str.split(':');
+                if (parts.length >= 2) {
+                    let hhStr = parts[0].trim();
+                    let mmStr = parts[1].trim();
+                    if (hhStr.includes(' ')) {
+                        const sp = hhStr.split(' ');
+                        hhStr = sp[sp.length - 1];
+                    }
+                    if (hhStr.includes('T')) {
+                        const sp = hhStr.split('T');
+                        hhStr = sp[sp.length - 1];
+                    }
+                    const hh = parseInt(hhStr, 10);
+                    const mm = parseInt(mmStr, 10);
+                    if (!isNaN(hh) && !isNaN(mm)) {
+                        return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+                    }
+                }
+            }
+            return str;
+        }
+
+        function renderTablePaginated() {
+            const tbody = document.getElementById('results-tbody');
+            const countDiv = document.getElementById('result-count');
+
+            const dataArray = currentFilteredRecords;
+
+            if (!dataArray || dataArray.length === 0) {
+                countDiv.innerHTML = `共找到 <strong style="color:var(--text-main);">0</strong> 筆資料`;
+                tbody.innerHTML = `<tr><td colspan="20" class="empty-state">查無符合條件的監控資料</td></tr>`;
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            countDiv.innerHTML = `共找到 <strong style="color:var(--primary); font-size:1.1rem;">${dataArray.length}</strong> 筆已送出的申請資料`;
+
+            // Slice for current page
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const pageData = dataArray.slice(startIndex, startIndex + itemsPerPage);
+
+            let html = '';
+            pageData.forEach((r, idx) => {
+                // Using dataset attributes to store the original ID or index
+                // Since we don't have a strict ID, we'll store the object stringified or rely on index
+                // but since it's sorted, index of sorted isn't index of allHistoricalRecords.
+                // Best is to find the true index via reference, but strings are easiest:
+                const origIdx = allHistoricalRecords.indexOf(r);
+                const mods = r._modified || [];
+                // Helper to conditionally apply red color if modified
+                const c = (key) => mods.includes(key) ? 'color: #dc2626; font-weight: 700;' : '';
+
+                const fApply = formatApplyTime(r['申請時間']);
+                const fSaleDate = r['開賣日期'] ? formatSaleDateStr(r['開賣日期']) : '';
+                const fWeek = r['星期'] || '';
+                const fSaleDateFull = fSaleDate ? (fWeek ? `${fSaleDate} (${fWeek})` : fSaleDate) : '-';
+                const fTime = formatTimeHM(r['時間']);
+
+                html += `
+					<tr data-index="${origIdx}">
+						<td><input type="checkbox" class="row-checkbox" value="${origIdx}"></td>
+						<td class="col-saleDate" style="${c('開賣日期')}">${fSaleDateFull}</td>
+						<td class="col-time" style="${c('時間')}">${fTime}</td>
+						<td class="col-name" style="${c('活動名稱')}">${r['活動名稱'] || '-'}</td>
+						<td class="col-action" style="${c('售票/核銷')}">${r['售票/核銷'] || '-'}</td>
+						<td class="col-level" style="${c('監控等級')}">${r['監控等級'] || '-'}</td>
+						<td class="col-sys" style="${c('系統別')}">${r['系統別'] || '-'}</td>
+						<td class="col-code" style="${c('A節目代碼/E活動分類')}">${r['A節目代碼/E活動分類'] || '-'}</td>
+						<td class="col-machine" style="${c('機器等級')}">${r['機器等級'] || '-'}</td>
+						<td class="col-queue" style="${c('排隊機制')}">${r['排隊機制'] || '-'}</td>
+						<td class="col-channel" style="${c('售票通路')}">${r['售票通路'] || '-'}</td>
+						<td class="col-machineFlow" style="${c('機台流管')}">${r['機台流管'] || '-'}</td>
+						<td class="col-tickets" style="${c('可售張數')}">${r['可售張數'] || '-'}</td>
+						<td class="col-otherMonitor" style="${c('其它單位監控')}">${r['其它單位監控'] || '-'}</td>
+						<td class="col-note" style="${c('特別說明')}">${(r['特別說明'] === '(無)' || !r['特別說明']) ? '' : r['特別說明']}</td>
+						<td class="col-owner" style="${c('負責業務')}">${r['負責業務'] || '-'}</td>
+						<td class="col-op" style="${c('建檔OP')}">${r['建檔OP'] || '-'}</td>
+						<td class="apply-time" style="${c('申請時間')}">${fApply}</td>
+						<td class="col-modifier" style="${c('異動人員')}">${r['異動人員'] || '-'}</td>
+                        <td>
+                            <button class="btn-copy" onclick="copyRow(this, ${origIdx})">複製</button>
+                            <button class="btn-edit" onclick="editRow(this, ${origIdx})">編輯</button>
+                            <button class="btn-delete" onclick="deleteRow(this, ${origIdx})">刪除</button>
+                        </td>
+					</tr>
+				`;
+            });
+
+            tbody.innerHTML = html;
+            renderPaginationControls(dataArray.length);
+            applyStickyColumns();
+            document.getElementById('selectAllRows').checked = false;
+            if (typeof updateGenerateMailButtonState === 'function') {
+                updateGenerateMailButtonState();
+            }
+        }
+
+        function applyStickyColumns() {
+            setTimeout(() => {
+                const table = document.getElementById('results-table');
+                if (!table) return;
+                const ths = table.querySelectorAll('thead th');
+                if (ths.length < 4) return;
+                
+                let leftOffsets = [];
+                let currentLeft = 0;
+                for (let i = 0; i < 4; i++) {
+                    leftOffsets.push(currentLeft);
+                    currentLeft += ths[i].offsetWidth;
+                }
+                
+                for (let i = 0; i < 4; i++) {
+                    ths[i].classList.add('sticky-col');
+                    if (i === 3) ths[i].classList.add('sticky-col-last');
+                    ths[i].style.left = leftOffsets[i] + 'px';
+                }
+                
+                const trs = table.querySelectorAll('tbody tr');
+                trs.forEach(tr => {
+                    const tds = tr.querySelectorAll('td');
+                    if (tds.length === 1) return; // empty state
+                    for (let i = 0; i < 4; i++) {
+                        if (!tds[i]) continue;
+                        tds[i].classList.add('sticky-col');
+                        if (i === 3) tds[i].classList.add('sticky-col-last');
+                        tds[i].style.left = leftOffsets[i] + 'px';
+                    }
+                });
+            }, 0);
+        }
+
+        let currentEditingIndex = -1;
+        let isCopyMode = false;
+
+        function editRow(btn, idx) {
+            isCopyMode = false;
+            document.querySelector('.modal-header h2').innerText = '編輯監控資料';
+            populateModal(idx);
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        function copyRow(btn, idx) {
+            isCopyMode = true;
+            document.querySelector('.modal-header h2').innerText = '複製並新增監控資料';
+            populateModal(idx);
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        function populateModal(idx) {
+            const record = allHistoricalRecords[idx];
+            currentEditingIndex = idx;
+
+            const colsToMap = {
+                'saleDate': '開賣日期',
+                'time': '時間',
+                'action': '售票/核銷',
+                'level': '監控等級',
+                'sys': '系統別',
+                'code': 'A節目代碼/E活動分類',
+                'name': '活動名稱',
+                'machine': '機器等級',
+                'queue': '排隊機制',
+                'channel': '售票通路',
+                'machineFlow': '機台流管',
+                'tickets': '可售張數',
+                'otherMonitor': '其它單位監控',
+                'note': '特別說明',
+                'owner': '負責業務',
+                'op': '建檔OP'
+            };
+
+            const selectOptions = {
+                'action': ['售票', '核銷'],
+                'level': ['小', '中', '大', '免監控'],
+                'sys': ['A系統', 'E系統', '交通', '其他'],
+                'machine': ['小', '中', '大'],
+                'queue': ['無', '一般排隊', '流管畫面'],
+                'channel': ['網站', '機台', '網站+機台'],
+                'owner': ['蔣璧雲', '王意涵', '薛雅心', '洪瑞祥', '李心榆'],
+                'op': ['何乾源', '陳乃菁', '曾雅鈞', '鄭婷芝', '王馨瑤', '賴怡儒', '陳思穎']
+            };
+
+            // Set modal values
+            Object.keys(colsToMap).forEach(col => {
+                const val = record[colsToMap[col]] || '';
+                if (col === 'saleDate') {
+                    let formattedSaleDate = formatSaleDateStr(val);
+                    document.getElementById('modal-' + col).value = formattedSaleDate.replace(/\//g, '-');
+                } else if (col === 'time') {
+                    let formattedTime = formatTimeHM(val);
+                    const hh = (formattedTime !== '-') ? formattedTime.split(':')[0] : '';
+                    const mm = (formattedTime !== '-') ? formattedTime.split(':')[1] : '';
+                    document.getElementById('modal-time-hh').value = hh;
+                    document.getElementById('modal-time-mm').value = mm;
+                } else if (selectOptions[col]) {
+                    const sel = document.getElementById('modal-' + col);
+                    let exists = false;
+                    for (let i = 0; i < sel.options.length; i++) {
+                        if (sel.options[i].value === val) { exists = true; break; }
+                    }
+                    if (!exists && val) {
+                        const opt = document.createElement('option');
+                        opt.value = val;
+                        opt.text = val;
+                        sel.add(opt, 0);
+                    }
+                    sel.value = val;
+                } else if (col === 'note') {
+                    const noteVal = val === '(無)' ? '' : val;
+                    document.getElementById('modal-' + col).value = noteVal;
+                } else {
+                    document.getElementById('modal-' + col).value = val;
+                }
+            });
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            currentEditingIndex = -1;
+        }
+
+        async function confirmSaveModal() {
+            if (currentEditingIndex === -1) return;
+            const idx = currentEditingIndex;
+            const btn = document.getElementById('btn-save-modal');
+
+            // Read values back from modal
+            const newSaleDate = document.getElementById('modal-saleDate').value.trim().replace(/-/g, '/');
+            const hhVal = document.getElementById('modal-time-hh').value.trim();
+            const mmVal = document.getElementById('modal-time-mm').value.trim();
+            const newTime = (hhVal && mmVal) ? `${hhVal.padStart(2, '0')}:${mmVal.padStart(2, '0')}` : '';
+            const newAction = document.getElementById('modal-action').value.trim();
+            const newLevel = document.getElementById('modal-level').value.trim();
+            const newSys = document.getElementById('modal-sys').value.trim();
+            const newCode = document.getElementById('modal-code').value.trim();
+            const newName = document.getElementById('modal-name').value.trim();
+            const newMachine = document.getElementById('modal-machine').value.trim();
+            const newQueue = document.getElementById('modal-queue').value.trim();
+            const newChannel = document.getElementById('modal-channel').value.trim();
+            const newMachineFlow = document.getElementById('modal-machineFlow').value.trim();
+            const newTickets = document.getElementById('modal-tickets').value.trim();
+            const newOtherMonitor = document.getElementById('modal-otherMonitor').value.trim();
+            const newNote = document.getElementById('modal-note').value.trim();
+            const newOwner = document.getElementById('modal-owner').value.trim();
+            const newOp = document.getElementById('modal-op').value.trim();
+
+            let record;
+            let mods;
+
+            if (isCopyMode) {
+                record = {};
+                mods = [];
+            } else {
+                record = allHistoricalRecords[idx];
+                mods = record._modified || [];
+                if (typeof mods === 'string') mods = mods.split(',');
+            }
+
+            const updates = [
+                { k: '開賣日期', v: newSaleDate },
+                { k: '時間', v: newTime },
+                { k: '售票/核銷', v: newAction },
+                { k: '監控等級', v: newLevel },
+                { k: '系統別', v: newSys },
+                { k: 'A節目代碼/E活動分類', v: newCode },
+                { k: '活動名稱', v: newName },
+                { k: '機器等級', v: newMachine },
+                { k: '排隊機制', v: newQueue },
+                { k: '售票通路', v: newChannel },
+                { k: '機台流管', v: newMachineFlow },
+                { k: '可售張數', v: newTickets },
+                { k: '其它單位監控', v: newOtherMonitor },
+                { k: '特別說明', v: newNote },
+                { k: '負責業務', v: newOwner },
+                { k: '建檔OP', v: newOp }
+            ];
+
+            updates.forEach(u => {
+                if (isCopyMode) {
+                    record[u.k] = u.v;
+                } else {
+                    if (record[u.k] !== u.v) {
+                        if (!mods.includes(u.k)) mods.push(u.k);
+                        record[u.k] = u.v;
+                    }
+                }
+            });
+
+            const days = ['日', '一', '二', '三', '四', '五', '六'];
+            if (newSaleDate) {
+                const dayIndex = new Date(newSaleDate).getDay();
+                if (!isNaN(dayIndex)) {
+                    if (isCopyMode || record['星期'] !== days[dayIndex]) {
+                        record['星期'] = days[dayIndex];
+                    }
+                }
+            } else {
+                record['星期'] = '';
+            }
+
+            if (!isCopyMode) {
+                record._modified = mods;
+            }
+
+            const now = new Date();
+            const nowY = now.getFullYear();
+            const nowM = String(now.getMonth() + 1).padStart(2, '0');
+            const nowD = String(now.getDate()).padStart(2, '0');
+            const nowH = String(now.getHours()).padStart(2, '0');
+            const nowMin = String(now.getMinutes()).padStart(2, '0');
+            record['申請時間'] = isCopyMode ? `${nowY}/${nowM}/${nowD} ${nowH}:${nowMin}` : `${nowY}/${nowM}/${nowD} ${nowH}:${nowMin} (已更新)`;
+            try {
+                const s = sessionStorage.getItem(SESSION_KEY);
+                const sess = s ? JSON.parse(s) : {};
+                record['異動人員'] = sess.name || sess.username || '未知';
+            } catch(e) {}
+
+            if (isCopyMode) {
+                allHistoricalRecords.push(record);
+            }
+
+            try {
+                btn.textContent = '儲存中...';
+                btn.disabled = true;
+                const result = await saveToGAS(allHistoricalRecords);
+                if (result && result.error) throw new Error(result.error);
+                console.log('儲存結果:', result);
+            } catch (e) {
+                alert('資料庫更新失敗：' + e.message);
+                btn.textContent = '儲存變更';
+                btn.disabled = false;
+                return;
+            }
+
+            // Email sending has been disabled upon re-editing
+
+            alert('已成功更新資料，畫面即將重新整理顯示最新紀錄。');
+            closeEditModal();
+            window.location.reload();
+        }
+
+        async function deleteRow(btn, idx) {
+            if (confirm('確定要刪除這筆資料嗎？此操作無法還原。')) {
+                const tr = btn.closest('tr');
+                const rowContentBackup = tr.innerHTML;
+                tr.innerHTML = '<td colspan="24" class="empty-state">刪除中...</td>';
+
+                const backupRecords = [...allHistoricalRecords];
+                allHistoricalRecords.splice(idx, 1);
+                
+                try {
+                    const result = await saveToGAS(allHistoricalRecords);
+                    if (result && result.error) throw new Error(result.error);
+                    console.log('刪除儲存結果:', result);
+                    alert('已成功刪除，畫面即將重新整理顯示最新紀錄。');
+                    window.location.reload();
+                } catch (e) {
+                    alert('資料庫刪除失敗：' + e.message);
+                    allHistoricalRecords = backupRecords;
+                    document.getElementById('btn-search').click();
+                }
+            }
+        }
+
+        function sendUpdateEmailNotification(recordsToEmail) {
+            // Reconstruct HTML Table for Email similar to the main form
+            const emailReceiver = "Tammy_Chen@qware.com.tw;ida_huang@qware.com.tw;dolly_chang@qware.com.tw;amber_lee@qware.com.tw;anne_lin@qware.com.tw;sylvia_wen@qware.com.tw";
+            const emailSubject = "監控申請 - 資料更新通知";
+
+            let dataRowsHtml = '';
+            recordsToEmail.forEach((r, idx) => {
+                const qQueue = r['排隊機制'];
+                const mods = r._modified || [];
+                const s = (key, baseCls) => mods.includes(key) ? `class="${baseCls}" style="color: red; font-weight: bold;"` : `class="${baseCls}"`;
+
+                const fSaleDate = r['開賣日期'] ? formatSaleDateStr(r['開賣日期']) : '';
+                const fWeek = r['星期'] || '';
+                const fTime = formatTimeHM(r['時間']);
+
+                dataRowsHtml += `
+                    <tr>
+                        <td class="td-data">${idx + 1}</td>
+                        <td ${s('開賣日期', 'td-data')}>${fSaleDate}</td>
+                        <td class="td-data">${fWeek}</td>
+                        <td ${s('時間', 'td-data')}>${fTime}</td>
+                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱']}</td>
+                        <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷']}</td>
+                        <td ${s('監控等級', 'td-blue')}>${r['監控等級']}</td>
+                        <td ${s('系統別', 'td-data')}>${r['系統別']}</td>
+                        <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類']}</td>
+                        <td ${s('機器等級', 'td-gray')}>${r['機器等級']}</td>
+                        <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
+                        <td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
+                        <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
+                        <td ${s('售票通路', 'td-yellow')}>${r['售票通路']}</td>
+                        <td class="td-data">${r['機台流管'] || ''}</td>
+                        <td class="td-data">${r['可售張數'] || ''}</td>
+                        <td class="td-data">${r['其它單位監控'] || ''}</td>
+                        <td class="td-data">${r['特別說明'] === '(無)' ? '' : (r['特別說明'] || '')}</td>
+                        <td ${s('負責業務', 'td-data')}>${r['負責業務'] || ''}</td>
+                        <td ${s('建檔OP', 'td-data')}>${r['建檔OP'] || ''}</td>
+                    </tr>
+                `;
+            });
+
+            let tableHtml = `
+                <style>
+                    .th-fde9d9 { background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding: 4px; }
+                    .th-daeef3 { background-color: #DAEEF3; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding: 4px; }
+                    .th-d8e4bc { background-color: #D8E4BC; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding: 4px; }
+                    .th-ccc0da { background-color: #CCC0DA; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding: 4px; }
+                    .td-data { border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
+                    .td-green { background-color: #C4D79B; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
+                    .td-blue { background-color: #B7DEE8; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
+                    .td-gray { background-color: #D9D9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
+                    .td-yellow { background-color: #FFE699; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
+                </style>
+                <table style="border-collapse: collapse;">
+                    <tr>
+                        <th class="th-fde9d9" rowspan="2">項次</th>
+                        <th class="th-fde9d9" rowspan="2">開賣日期</th>
+                        <th class="th-fde9d9" rowspan="2">星期</th>
+                        <th class="th-fde9d9" rowspan="2">時間</th>
+                        <th class="th-fde9d9" rowspan="2">活動名稱</th>
+                        <th class="th-daeef3" rowspan="2">售票/核銷</th>
+                        <th class="th-daeef3" rowspan="2">監控等級</th>
+                        <th class="th-fde9d9" rowspan="2">系統別</th>
+                        <th class="th-fde9d9" rowspan="2">A節目代碼/<br>E活動分類</th>
+                        <th class="th-d8e4bc" rowspan="2">機器等級</th>
+                        <th class="th-fde9d9" colspan="3">排隊機制</th>
+                        <th class="th-ccc0da" rowspan="2">售票通路</th>
+                        <th class="th-fde9d9" rowspan="2">機台<br>流管</th>
+                        <th class="th-fde9d9" rowspan="2">可售<br>張數</th>
+                        <th class="th-fde9d9" rowspan="2">其它單位監控</th>
+                        <th class="th-fde9d9" rowspan="2">特別說明</th>
+                        <th class="th-fde9d9" rowspan="2">負責業務</th>
+                        <th class="th-fde9d9" rowspan="2">建檔人員</th>
+                    </tr>
+                    <tr>
+                        <th class="th-fde9d9">無</th>
+                        <th class="th-fde9d9">一般排隊</th>
+                        <th class="th-fde9d9">流管畫面</th>
+                    </tr>
+                    ${dataRowsHtml}
+                </table>
+            `;
+
+            const mailHtmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">${tableHtml}</div>`;
+
+            try {
+                const outlookApp = new window.ActiveXObject("Outlook.Application");
+                const mailItem = outlookApp.CreateItem(0);
+                mailItem.To = emailReceiver;
+                mailItem.Subject = emailSubject;
+                mailItem.HTMLBody = mailHtmlBody;
+                mailItem.Display();
+            } catch (err) {
+                // EML fallback
+                const emlSubject = "=?utf-8?B?" + btoa(unescape(encodeURIComponent(emailSubject))) + "?=";
+                const emlEmailReceiver = emailReceiver.replace(/;/g, ',');
+                const emlContent = `To: ${emlEmailReceiver}\nSubject: ${emlSubject}\nX-Unsent: 1\nContent-Type: text/html; charset=utf-8\n\n<html><head><meta charset="UTF-8"></head><body>${mailHtmlBody}</body></html>`;
+
+                const blob = new Blob([emlContent], { type: 'message/rfc822' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                a.download = `更新通知信_${yyyy}${mm}${dd}.eml`;
+
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }
+        }
+
+        function toggleAllRows(source) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+            if (typeof updateGenerateMailButtonState === 'function') {
+                updateGenerateMailButtonState();
+            }
+        }
+
+        document.getElementById('results-tbody').addEventListener('change', function(e) {
+            if (e.target.classList.contains('row-checkbox')) {
+                updateGenerateMailButtonState();
+                const allCb = document.querySelectorAll('.row-checkbox');
+                const allChecked = document.querySelectorAll('.row-checkbox:checked');
+                document.getElementById('selectAllRows').checked = allCb.length > 0 && allCb.length === allChecked.length;
+            }
+        });
+
+        function updateGenerateMailButtonState() {
+            const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+            const btnGenerateMail = document.getElementById('btn-generate-mail');
+            if(btnGenerateMail) {
+                btnGenerateMail.disabled = checkedCount === 0;
+            }
+        }
+
+        document.getElementById('btn-generate-mail').addEventListener('click', function() {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkedBoxes.length === 0) return;
+            const recordsToEmail = Array.from(checkedBoxes).map(cb => allHistoricalRecords[cb.value]);
+            sendUpdateEmailNotification(recordsToEmail);
+        });
+
+        // Enable Enter key on inputs to trigger search
+        document.querySelectorAll('.search-grid input, .search-grid select').forEach(el => {
+            el.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('btn-search').click();
+                }
+            });
+        });
+
+        // Export search results to Excel
+        document.getElementById('btn-export-excel').addEventListener('click', function () {
+            if (currentFilteredRecords.length === 0) return;
+
+            let dataRows = '';
+
+            // Use the already sorted records (oldest/earliest at top, newest/latest at bottom)
+            const sortedRecords = [...currentFilteredRecords];
+
+            // Map each column to match exact colors and modifications
+            sortedRecords.forEach((r, idx) => {
+                const qQueue = r['排隊機制'];
+                const mods = r._modified || [];
+                const s = (key, baseCls) => mods.includes(key) ? `class="${baseCls}" style="color: red; font-weight: bold;"` : `class="${baseCls}"`;
+
+                const fSaleDate = r['開賣日期'] ? formatSaleDateStr(r['開賣日期']) : '';
+                const fWeek = r['星期'] || '';
+                const fTime = formatTimeHM(r['時間']);
+
+                dataRows += `
+                    <tr>
+                        <td class="td-data">${idx + 1}</td>
+                        <td ${s('開賣日期', 'td-data')}>${fSaleDate}</td>
+                        <td class="td-data">${fWeek}</td>
+                        <td ${s('時間', 'td-data')}>${fTime}</td>
+                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱'] || ''}</td>
+                        <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷'] || ''}</td>
+                        <td ${s('監控等級', 'td-blue')}>${r['監控等級'] || ''}</td>
+                        <td ${s('系統別', 'td-data')}>${r['系統別'] || ''}</td>
+                        <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類'] || ''}</td>
+                        <td ${s('機器等級', 'td-gray')}>${r['機器等級'] || ''}</td>
+                        <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
+                        <td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
+                        <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
+                        <td ${s('售票通路', 'td-yellow')}>${r['售票通路'] || ''}</td>
+                        <td class="td-data">${r['機台流管'] || ''}</td>
+                        <td class="td-data">${r['可售張數'] || ''}</td>
+                        <td class="td-data">${r['其它單位監控'] || ''}</td>
+                        <td class="td-data">${r['特別說明'] === '(無)' ? '' : (r['特別說明'] || '')}</td>
+                        <td ${s('負責業務', 'td-data')}>${r['負責業務'] || ''}</td>
+                        <td ${s('建檔OP', 'td-data')}>${r['建檔OP'] || ''}</td>
+                    </tr>
+                `;
+            });
+
+            let tableHtml = `
+                <style>
+                    .th-fde9d9 { background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; }
+                    .th-daeef3 { background-color: #DAEEF3; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; }
+                    .th-d8e4bc { background-color: #D8E4BC; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; }
+                    .th-ccc0da { background-color: #CCC0DA; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; }
+                    .td-data { border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
+                    .td-green { background-color: #C4D79B; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
+                    .td-blue { background-color: #B7DEE8; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
+                    .td-gray { background-color: #D9D9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
+                    .td-yellow { background-color: #FFE699; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
+                </style>
+                <table style="border-collapse: collapse;">
+                    <tr>
+                        <th class="th-fde9d9" rowspan="2">項次</th>
+                        <th class="th-fde9d9" rowspan="2">開賣日期</th>
+                        <th class="th-fde9d9" rowspan="2">星期</th>
+                        <th class="th-fde9d9" rowspan="2">時間</th>
+                        <th class="th-fde9d9" rowspan="2">活動名稱</th>
+                        <th class="th-daeef3" rowspan="2">售票/核銷</th>
+                        <th class="th-daeef3" rowspan="2">監控等級</th>
+                        <th class="th-fde9d9" rowspan="2">系統別</th>
+                        <th class="th-fde9d9" rowspan="2">A節目代碼/<br>E活動分類</th>
+                        <th class="th-d8e4bc" rowspan="2">機器等級</th>
+                        <th class="th-fde9d9" colspan="3">排隊機制</th>
+                        <th class="th-ccc0da" rowspan="2">售票通路</th>
+                        <th class="th-fde9d9" rowspan="2">機台<br>流管</th>
+                        <th class="th-fde9d9" rowspan="2">可售<br>張數</th>
+                        <th class="th-fde9d9" rowspan="2">其它單位監控</th>
+                        <th class="th-fde9d9" rowspan="2">特別說明</th>
+                        <th class="th-fde9d9" rowspan="2">負責業務</th>
+                        <th class="th-fde9d9" rowspan="2">建檔人員</th>
+                    </tr>
+                    <tr>
+                        <th class="th-fde9d9">無</th>
+                        <th class="th-fde9d9">一般排隊</th>
+                        <th class="th-fde9d9">流管畫面</th>
+                    </tr>
+                    ${dataRows}
+                </table>
+            `;
+
+            // Wrap in exact excel xml schema meta
+            const excelFile = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>歷史監控資料</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>${tableHtml}</body></html>`;
+
+            const blob = new Blob([excelFile], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const hh = String(today.getHours()).padStart(2, '0');
+            const min = String(today.getMinutes()).padStart(2, '0');
+
+            a.href = url;
+            a.download = `查詢結果匯出_${yyyy}${mm}${dd}_${hh}${min}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        });
+    </script>
+    <datalist id="hh-options"></datalist>
+    <datalist id="mm-options"></datalist>
+    <script>
+        const hhList = document.getElementById('hh-options');
+        for(let i=0; i<24; i++) {
+            hhList.innerHTML += `<option value="${String(i).padStart(2, '0')}"></option>`;
+        }
+        const mmList = document.getElementById('mm-options');
+        for(let i=0; i<60; i++) {
+            mmList.innerHTML += `<option value="${String(i).padStart(2, '0')}"></option>`;
+        }
+    </script>
+    <script>
+        // ── 登入驗證 & 登出 ──
+        const SESSION_KEY = 'monitoring_system_session';
+        (function checkAuth() {
+            const s = sessionStorage.getItem(SESSION_KEY);
+            let session = null;
+            try { session = JSON.parse(s); } catch(e) {}
+            if (!session || !session.username) {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (session.role !== 'admin') {
+                const perms = session.permissions || [];
+                if (!perms.includes('查詢及更新監控表單')) {
+                    alert('您沒有權限存取此頁面！');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                document.querySelectorAll('.sidebar-menu a').forEach(a => {
+                    const text = a.textContent.trim();
+                    if (text === '帳號權限管理') return;
+                    if (!perms.includes(text)) {
+                        const li = a.closest('li');
+                        if (li) li.style.display = 'none';
+                    }
+                });
+            }
+            const infoEl = document.getElementById('sidebar-user-info');
+            if (infoEl) infoEl.textContent = session.name || session.username;
+            if (session.role === 'admin') {
+                const li = document.getElementById('li-admin-link');
+                if (li) li.style.display = '';
+            }
+        })();
+
+        document.getElementById('btn-logout').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('確定要登出嗎？')) {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+
+</html>
