@@ -194,6 +194,13 @@
             background: rgba(79, 70, 229, 0.2);
         }
 
+        .nav-link:disabled {
+            opacity: 0.5;
+            cursor: not-allowed !important;
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-muted);
+        }
+
         .search-grid {
             display: flex;
             flex-wrap: wrap;
@@ -254,6 +261,19 @@
         select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        input[type="checkbox"] {
+            appearance: auto;
+            -webkit-appearance: checkbox;
+            width: 16px;
+            height: 16px;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            box-shadow: none;
         }
 
         .search-btn-container {
@@ -738,6 +758,12 @@
                     </svg>
                     匯出 Excel
                 </button>
+                <button type="button" class="nav-link" id="btn-generate-mail" style="border:none; cursor:pointer;" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    產生通知信
+                </button>
             </div>
         </div>
 
@@ -800,6 +826,7 @@
             <table id="results-table">
                 <thead>
                     <tr>
+                        <th class="sticky-col"><input type="checkbox" id="selectAllRows" onclick="toggleAllRows(this)"></th>
                         <th>開賣日期</th>
                         <th>時間</th>
                         <th>活動名稱</th>
@@ -824,7 +851,7 @@
                 <tbody id="results-tbody">
                     <!-- Data will be populated here -->
                     <tr>
-                        <td colspan="19" class="empty-state">請點擊上方查詢按鈕或輸入條件後查詢</td>
+                        <td colspan="20" class="empty-state">請點擊上方查詢按鈕或輸入條件後查詢</td>
                     </tr>
                 </tbody>
             </table>
@@ -1402,6 +1429,7 @@
 
                 html += `
 					<tr data-index="${origIdx}">
+						<td><input type="checkbox" class="row-checkbox" value="${origIdx}"></td>
 						<td class="col-saleDate" style="${c('開賣日期')}">${fSaleDateFull}</td>
 						<td class="col-time" style="${c('時間')}">${fTime}</td>
 						<td class="col-name" style="${c('活動名稱')}">${r['活動名稱'] || '-'}</td>
@@ -1432,6 +1460,10 @@
             tbody.innerHTML = html;
             renderPaginationControls(dataArray.length);
             applyStickyColumns();
+            document.getElementById('selectAllRows').checked = false;
+            if (typeof updateGenerateMailButtonState === 'function') {
+                updateGenerateMailButtonState();
+            }
         }
 
         function applyStickyColumns() {
@@ -1439,18 +1471,18 @@
                 const table = document.getElementById('results-table');
                 if (!table) return;
                 const ths = table.querySelectorAll('thead th');
-                if (ths.length < 3) return;
+                if (ths.length < 4) return;
                 
                 let leftOffsets = [];
                 let currentLeft = 0;
-                for (let i = 0; i < 3; i++) {
+                for (let i = 0; i < 4; i++) {
                     leftOffsets.push(currentLeft);
                     currentLeft += ths[i].offsetWidth;
                 }
                 
-                for (let i = 0; i < 3; i++) {
+                for (let i = 0; i < 4; i++) {
                     ths[i].classList.add('sticky-col');
-                    if (i === 2) ths[i].classList.add('sticky-col-last');
+                    if (i === 3) ths[i].classList.add('sticky-col-last');
                     ths[i].style.left = leftOffsets[i] + 'px';
                 }
                 
@@ -1458,10 +1490,10 @@
                 trs.forEach(tr => {
                     const tds = tr.querySelectorAll('td');
                     if (tds.length === 1) return; // empty state
-                    for (let i = 0; i < 3; i++) {
+                    for (let i = 0; i < 4; i++) {
                         if (!tds[i]) continue;
                         tds[i].classList.add('sticky-col');
-                        if (i === 2) tds[i].classList.add('sticky-col-last');
+                        if (i === 3) tds[i].classList.add('sticky-col-last');
                         tds[i].style.left = leftOffsets[i] + 'px';
                     }
                 });
@@ -1934,6 +1966,160 @@
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
+        });
+
+        function sendUpdateEmailNotification(records) {
+            if (!records || records.length === 0) return;
+
+            const emailSubject = "監控申請 - 資料更新通知";
+            const emailReceiver = "Tammy_Chen@qware.com.tw;ida_huang@qware.com.tw;dolly_chang@qware.com.tw;amber_lee@qware.com.tw;anne_lin@qware.com.tw;sylvia_wen@qware.com.tw";
+
+            let dataRowsHtml = '';
+            records.forEach((r, idx) => {
+                const s = (key, baseClass) => {
+                    const isMod = (r._modified || []).includes(key);
+                    let st = isMod ? 'color: #dc2626; font-weight: 700;' : '';
+                    return `class="${baseClass}" style="${st}"`;
+                };
+
+                const fApply = formatApplyTime(r['申請時間']);
+                const fSaleDate = r['開賣日期'] ? formatSaleDateStr(r['開賣日期']) : '';
+                const fWeek = r['星期'] || '';
+                const fSaleDateFull = fSaleDate ? (fWeek ? `${fSaleDate} (${fWeek})` : fSaleDate) : '-';
+                const fTime = formatTimeHM(r['時間']);
+                const qQueue = r['排隊機制'] || '';
+
+                dataRowsHtml += `
+                    <tr>
+                        <td class="td-data">${idx + 1}</td>
+                        <td ${s('開賣日期', 'td-data')}>${fSaleDateFull}</td>
+                        <td ${s('星期', 'td-data')}>${fWeek}</td>
+                        <td ${s('時間', 'td-data')}>${fTime}</td>
+                        <td ${s('活動名稱', 'td-data')}>${r['活動名稱'] || ''}</td>
+                        <td ${s('售票/核銷', 'td-green')}>${r['售票/核銷'] || ''}</td>
+                        <td ${s('監控等級', 'td-blue')}>${r['監控等級'] || ''}</td>
+                        <td ${s('系統別', 'td-data')}>${r['系統別'] || ''}</td>
+                        <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類'] || ''}</td>
+                        <td ${s('機器等級', 'td-gray')}>${r['機器等級'] || ''}</td>
+                        <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
+                        <td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
+                        <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
+                        <td ${s('售票通路', 'td-yellow')}>${r['售票通路'] || ''}</td>
+                        <td class="td-data">${r['機台流管'] || ''}</td>
+                        <td class="td-data">${r['可售張數'] || ''}</td>
+                        <td class="td-data">${r['其它單位監控'] || ''}</td>
+                        <td class="td-data">${r['特別說明'] === '(無)' ? '' : (r['特別說明'] || '')}</td>
+                        <td ${s('負責業務', 'td-data')}>${r['負責業務'] || ''}</td>
+                        <td ${s('建檔OP', 'td-data')}>${r['建檔OP'] || ''}</td>
+                    </tr>
+                `;
+            });
+
+            let tableHtml = `
+                <style>
+                    .th-fde9d9 { background-color: #FDE9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding: 4px; }
+                    .th-daeef3 { background-color: #DAEEF3; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding: 4px; }
+                    .th-d8e4bc { background-color: #D8E4BC; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding: 4px; }
+                    .th-ccc0da { background-color: #CCC0DA; border: .5pt solid windowtext; vertical-align: middle; text-align: center; font-weight: bold; white-space: nowrap; padding: 4px; }
+                    .td-data { border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
+                    .td-green { background-color: #C4D79B; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
+                    .td-blue { background-color: #B7DEE8; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
+                    .td-gray { background-color: #D9D9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
+                    .td-yellow { background-color: #FFE699; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
+                </style>
+                <table style="border-collapse: collapse;">
+                    <tr>
+                        <th class="th-fde9d9" rowspan="2">項次</th>
+                        <th class="th-fde9d9" rowspan="2">開賣日期</th>
+                        <th class="th-fde9d9" rowspan="2">星期</th>
+                        <th class="th-fde9d9" rowspan="2">時間</th>
+                        <th class="th-fde9d9" rowspan="2">活動名稱</th>
+                        <th class="th-daeef3" rowspan="2">售票/核銷</th>
+                        <th class="th-daeef3" rowspan="2">監控等級</th>
+                        <th class="th-fde9d9" rowspan="2">系統別</th>
+                        <th class="th-fde9d9" rowspan="2">A節目代碼/<br>E活動分類</th>
+                        <th class="th-d8e4bc" rowspan="2">機器等級</th>
+                        <th class="th-fde9d9" colspan="3">排隊機制</th>
+                        <th class="th-ccc0da" rowspan="2">售票通路</th>
+                        <th class="th-fde9d9" rowspan="2">機台<br>流管</th>
+                        <th class="th-fde9d9" rowspan="2">可售<br>張數</th>
+                        <th class="th-fde9d9" rowspan="2">其它單位監控</th>
+                        <th class="th-fde9d9" rowspan="2">特別說明</th>
+                        <th class="th-fde9d9" rowspan="2">負責業務</th>
+                        <th class="th-fde9d9" rowspan="2">建檔人員</th>
+                    </tr>
+                    <tr>
+                        <th class="th-fde9d9">無</th>
+                        <th class="th-fde9d9">一般排隊</th>
+                        <th class="th-fde9d9">流管畫面</th>
+                    </tr>
+                    ${dataRowsHtml}
+                </table>
+            `;
+
+            const mailHtmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">${tableHtml}</div>`;
+
+            try {
+                const outlookApp = new window.ActiveXObject("Outlook.Application");
+                const mailItem = outlookApp.CreateItem(0);
+                mailItem.To = emailReceiver;
+                mailItem.Subject = emailSubject;
+                mailItem.HTMLBody = mailHtmlBody;
+                mailItem.Display();
+            } catch (err) {
+                // EML fallback
+                const emlSubject = "=?utf-8?B?" + btoa(unescape(encodeURIComponent(emailSubject))) + "?=";
+                const emlEmailReceiver = emailReceiver.replace(/;/g, ',');
+                const emlContent = `To: ${emlEmailReceiver}\nSubject: ${emlSubject}\nX-Unsent: 1\nContent-Type: text/html; charset=utf-8\n\n<html><head><meta charset="UTF-8"></head><body>${mailHtmlBody}</body></html>`;
+
+                const blob = new Blob([emlContent], { type: 'message/rfc822' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                a.download = `更新通知信_${yyyy}${mm}${dd}.eml`;
+
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }
+        }
+
+        function toggleAllRows(source) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+            if (typeof updateGenerateMailButtonState === 'function') {
+                updateGenerateMailButtonState();
+            }
+        }
+
+        document.getElementById('results-tbody').addEventListener('change', function(e) {
+            if (e.target.classList.contains('row-checkbox')) {
+                updateGenerateMailButtonState();
+                const allCb = document.querySelectorAll('.row-checkbox');
+                const allChecked = document.querySelectorAll('.row-checkbox:checked');
+                document.getElementById('selectAllRows').checked = allCb.length > 0 && allCb.length === allChecked.length;
+            }
+        });
+
+        function updateGenerateMailButtonState() {
+            const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+            const btnGenerateMail = document.getElementById('btn-generate-mail');
+            if(btnGenerateMail) {
+                btnGenerateMail.disabled = checkedCount === 0;
+            }
+        }
+
+        document.getElementById('btn-generate-mail').addEventListener('click', function() {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkedBoxes.length === 0) return;
+            const recordsToEmail = Array.from(checkedBoxes).map(cb => allHistoricalRecords[cb.value]);
+            sendUpdateEmailNotification(recordsToEmail);
         });
     </script>
     <datalist id="hh-options"></datalist>
