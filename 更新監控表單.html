@@ -798,7 +798,7 @@
             <table id="results-table">
                 <thead>
                     <tr>
-                        <th class="sticky-col"><input type="checkbox" id="selectAllRows" onclick="toggleAllRows(this)"></th>
+                        <th class="sticky-col" title="勾選產生通知信"><input type="checkbox" id="selectAllRows" onclick="toggleAllRows(this)" title="勾選產生通知信"></th>
                         <th>開賣日期</th>
                         <th>時間</th>
                         <th>活動名稱</th>
@@ -1384,7 +1384,7 @@
 
                 html += `
 					<tr data-index="${origIdx}">
-						<td><input type="checkbox" class="row-checkbox" value="${origIdx}"></td>
+						<td title="勾選產生通知信"><input type="checkbox" class="row-checkbox" value="${origIdx}" title="勾選產生通知信"></td>
 						<td class="col-saleDate" style="${c('開賣日期')}">${fSaleDateFull}</td>
 						<td class="col-time" style="${c('時間')}">${fTime}</td>
 						<td class="col-name" style="${c('活動名稱')}">${r['活動名稱'] || '-'}</td>
