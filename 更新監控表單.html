@@ -429,6 +429,28 @@
             z-index: 15;
             top: 0;
         }
+
+        /* Custom tooltip for the first column checkboxes */
+        .checkbox-cell {
+            position: relative;
+        }
+        .checkbox-cell:hover::after {
+            content: "勾選產生通知信";
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 8px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            white-space: nowrap;
+            z-index: 9999;
+            pointer-events: none;
+            font-weight: normal;
+        }
         tbody td.sticky-col {
             background: #fff;
         }
@@ -798,7 +820,7 @@
             <table id="results-table">
                 <thead>
                     <tr>
-                        <th class="sticky-col" title="勾選產生通知信"><input type="checkbox" id="selectAllRows" onclick="toggleAllRows(this)" title="勾選產生通知信"></th>
+                        <th class="sticky-col checkbox-cell" title="勾選產生通知信"><input type="checkbox" id="selectAllRows" onclick="toggleAllRows(this)"></th>
                         <th>開賣日期</th>
                         <th>時間</th>
                         <th>活動名稱</th>
@@ -1384,7 +1406,7 @@
 
                 html += `
 					<tr data-index="${origIdx}">
-						<td title="勾選產生通知信"><input type="checkbox" class="row-checkbox" value="${origIdx}" title="勾選產生通知信"></td>
+						<td class="checkbox-cell" title="勾選產生通知信"><input type="checkbox" class="row-checkbox" value="${origIdx}"></td>
 						<td class="col-saleDate" style="${c('開賣日期')}">${fSaleDateFull}</td>
 						<td class="col-time" style="${c('時間')}">${fTime}</td>
 						<td class="col-name" style="${c('活動名稱')}">${r['活動名稱'] || '-'}</td>
