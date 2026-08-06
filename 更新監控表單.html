@@ -305,6 +305,30 @@
             border-color: rgba(0, 0, 0, 0.3);
         }
 
+        button.btn-refresh {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            height: 35px;
+            min-width: 90px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        button.btn-refresh:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+        }
+
         button.btn-search {
             background: linear-gradient(135deg, var(--primary), #a855f7);
             color: white;
@@ -811,6 +835,14 @@
                     </svg>
                     查詢
                 </button>
+                <button type="button" class="btn-refresh" id="btn-refresh">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    手動更新
+                </button>
             </div>
         </div>
 
@@ -1121,6 +1153,23 @@
             document.getElementById('search-date-end').type = 'text';
 
             document.getElementById('btn-search').click();
+        });
+
+        // Refresh button click
+        document.getElementById('btn-refresh').addEventListener('click', async function () {
+            // clear cache
+            sessionStorage.removeItem('monitoring_data_cache');
+            sessionStorage.removeItem('monitoring_data_time');
+            
+            document.getElementById('results-tbody').innerHTML = '<tr><td colspan="24" class="empty-state">資料更新中，請稍候...</td></tr>';
+            try {
+                // force reload
+                allHistoricalRecords = await loadData(2);
+                document.getElementById('btn-search').click();
+            } catch (e) {
+                console.error("無法讀取資料庫資料:", e);
+                alert('更新失敗：' + e.message);
+            }
         });
 
         document.getElementById('btn-search').addEventListener('click', function () {
