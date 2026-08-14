@@ -1209,9 +1209,8 @@
                 // Default filter: if no conditions, hide records with sale date before today
                 if (!hasConditions) {
                     if (!isValidDate) {
-                        // If no valid sale date, we can either hide or show. Let's hide it to keep list clean,
-                        // or show it if we strictly only hide past dates. Usually sale date is required.
-                        match = false; 
+                        // If no valid sale date, show it so the user can see and fix the formatting.
+                        match = true; 
                     } else {
                         const recDateOnly = new Date(recDate.getTime());
                         recDateOnly.setHours(0, 0, 0, 0);
@@ -1645,7 +1644,9 @@
             let mods;
 
             if (isCopyMode) {
-                record = {};
+                record = {
+                    _id: Date.now() + Math.random().toString(36).substr(2, 9)
+                };
                 mods = [];
             } else {
                 record = allHistoricalRecords[idx];
