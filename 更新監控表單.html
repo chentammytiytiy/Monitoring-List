@@ -1015,7 +1015,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAE9D4xxmt5YqmvoUJjWXgzuGWykP9HtTGeaURK2Mwjwn9NEYp0SbgNJlnH0uw2eajag/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKAKdT8uMsLjhKEXYJueCuN72uggHihcBSy396BHirI6bQqz592fB-v4Y0DAmgzyfILQ/exec';
         let allHistoricalRecords = [];
         let currentFilteredRecords = []; // Keep track of the currently displayed records for Excel export
         let currentPage = 1;
@@ -1025,10 +1025,10 @@
         // 使用 POST 請求 + JSON Body 寫入 GAS（解決 URL 長度限制）
         // 整批覆蓋 mode：action='save'
         // ====================================================
-        async function saveToGAS(data) {
+        async function saveToGAS(data, action = 'save') {
             sessionStorage.removeItem('monitoring_data_cache');
             sessionStorage.removeItem('monitoring_data_time');
-            const payload = JSON.stringify({ action: 'save', data });
+            const payload = JSON.stringify({ action: action, data });
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
@@ -1053,7 +1053,7 @@
                 console.warn('POST 失敗，嘗試 GET 備用:', err.message);
                 const jsonStr2 = JSON.stringify(data);
                 if (jsonStr2.length < 6000) {
-                    const url = `${SCRIPT_URL}?action=save&data=${encodeURIComponent(jsonStr2)}`;
+                    const url = `${SCRIPT_URL}?action=${action}&data=${encodeURIComponent(jsonStr2)}`;
                     const r = await fetch(url);
                     const resJson = await r.json();
                     if (resJson.error) throw new Error(resJson.error);
@@ -1720,7 +1720,7 @@
             try {
                 btn.textContent = '儲存中...';
                 btn.disabled = true;
-                const result = await saveToGAS(allHistoricalRecords);
+                const result = await saveToGAS([record], 'append');
                 if (result && result.error) throw new Error(result.error);
                 console.log('儲存結果:', result);
             } catch (e) {
@@ -1732,9 +1732,9 @@
 
             // Email sending has been disabled upon re-editing
 
-            alert('已成功更新資料，畫面即將重新整理顯示最新紀錄。');
+            alert('已成功更新資料！');
             closeEditModal();
-            window.location.reload();
+            renderTablePaginated(); // 直接重新渲染畫面，不重新載入網頁以提升速度
         }
 
         async function deleteRow(btn, idx) {

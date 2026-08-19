@@ -220,29 +220,59 @@ function handleSaveArray(records) {
   }
 }
 
-/**
- * append 模式：讀取現有表格 → 合併（_id 去重）→ 整批覆蓋寫回
- */
 function handleAppend(newRecords) {
   try {
     if (!Array.isArray(newRecords) || newRecords.length === 0) {
       return jsonResponse({ error: '無新增資料' });
     }
 
-    var existing = readTableAsArray();
+    var ss      = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet   = ss.getSheets()[0];
+    var lastRow = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+
+    // 如果表格為空，直接用 handleSaveArray 寫入
+    if (lastRow < 2) {
+      return handleSaveArray(newRecords);
+    }
+
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var idIndex = headers.indexOf('_id');
+
+    if (idIndex === -1) {
+      // 若無 _id，退回舊的寫入模式
+      var existing = readTableAsArray();
+      newRecords.forEach(function(r) {
+        existing.push(r);
+      });
+      return handleSaveArray(existing);
+    }
+
+    // 取得所有現有 _id
+    var idValues = sheet.getRange(2, idIndex + 1, lastRow - 1, 1).getValues().map(function(row) {
+      return row[0] ? row[0].toString() : '';
+    });
 
     newRecords.forEach(function(r) {
-      var idx = r._id
-        ? existing.findIndex(function(h) { return h._id && h._id === r._id; })
-        : -1;
-      if (idx !== -1) {
-        existing[idx] = r; // 更新
+      var targetId = r._id ? r._id.toString() : '';
+      var rowIdx = targetId ? idValues.indexOf(targetId) : -1;
+
+      var rowData = headers.map(function(h) {
+        var v = r[h];
+        return (v !== undefined && v !== null) ? String(v) : '';
+      });
+
+      if (rowIdx !== -1) {
+        // 更新：將單列資料寫入對應範圍
+        sheet.getRange(rowIdx + 2, 1, 1, headers.length).setValues([rowData]);
       } else {
-        existing.push(r);  // 新增
+        // 新增
+        sheet.appendRow(rowData);
+        idValues.push(targetId); // 預防同批有重複新增
       }
     });
 
-    return handleSaveArray(existing);
+    return jsonResponse({ success: true, count: newRecords.length });
   } catch (err) {
     Logger.log('handleAppend error: ' + err.toString());
     return jsonResponse({ error: err.toString() });
