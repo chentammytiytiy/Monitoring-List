@@ -1356,6 +1356,41 @@
                 const displaySaleDate = fSaleDate ? `${fSaleDate}` : '';
                 const fTime = formatTimeHM(r['時間']);
 
+                let monitorsHtml = '';
+                const mLevel = r['監控等級'] || '';
+                
+                const roles = [
+                    { label: '業務', key: '負責業務' },
+                    { label: 'OP', key: '建檔OP' }
+                ];
+                
+                if (mLevel !== '免監控') {
+                    roles.push(
+                        { label: 'PM', key: '監控PM' },
+                        { label: 'A系統IT', key: 'A系統+會員IT' },
+                        { label: 'D系統IT', key: 'D系統IT' },
+                        { label: 'Q系統IT', key: 'Q系統IT' },
+                        { label: 'E系統IT', key: 'E系統IT' },
+                        { label: '金流IT', key: '金流IT' }
+                    );
+                }
+                
+                roles.forEach(role => {
+                    const val = r[role.key];
+                    if (val && val !== 'X' && val !== 'x' && val !== '-' && val !== '(無)') {
+                        const isModified = mods.includes(role.key);
+                        const styleStr = isModified ? 'style="color:red;font-weight:bold;"' : '';
+                        if (styleStr) {
+                            monitorsHtml += `<span ${styleStr}>${role.label}: ${val}</span><br style="mso-data-placement:same-cell;"/>`;
+                        } else {
+                            monitorsHtml += `${role.label}: ${val}<br style="mso-data-placement:same-cell;"/>`;
+                        }
+                    }
+                });
+                if (monitorsHtml.endsWith('<br style="mso-data-placement:same-cell;"/>')) {
+                    monitorsHtml = monitorsHtml.slice(0, -45);
+                }
+
                 dataRows += `
                     <tr>
                         <td class="td-data">${idx + 1}</td>
@@ -1376,14 +1411,7 @@
                         <td class="td-data">${r['可售張數'] || ''}</td>
                         <td class="td-data">${r['其它單位監控'] || ''}</td>
                         <td class="td-data">${r['特別說明'] || ''}</td>
-                        <td ${s('負責業務', 'td-data')}>${r['負責業務'] || ''}</td>
-                        <td ${s('建檔OP', 'td-data')}>${r['建檔OP'] || ''}</td>
-                        <td ${s('監控PM', 'td-data')}>${r['監控PM'] || ''}</td>
-                        <td ${s('A系統+會員IT', 'td-data')}>${r['A系統+會員IT'] || ''}</td>
-                        <td ${s('金流IT', 'td-data')}>${r['金流IT'] || ''}</td>
-                        <td ${s('D系統IT', 'td-data')}>${r['D系統IT'] || ''}</td>
-                        <td ${s('Q系統IT', 'td-data')}>${r['Q系統IT'] || ''}</td>
-                        <td ${s('E系統IT', 'td-data')}>${r['E系統IT'] || ''}</td>
+                        <td class="td-data" style="text-align: left; vertical-align: top; white-space: normal;">${monitorsHtml}</td>
                     </tr>
                 `;
             });
@@ -1418,14 +1446,7 @@
                         <th class="th-fde9d9" rowspan="2">可售<br>張數</th>
                         <th class="th-fde9d9" rowspan="2">其它單位監控</th>
                         <th class="th-fde9d9" rowspan="2">特別說明</th>
-                        <th class="th-fde9d9" rowspan="2">負責業務</th>
-                        <th class="th-fde9d9" rowspan="2">建檔人員</th>
-                        <th class="th-fde9d9" rowspan="2">監控PM</th>
-                        <th class="th-fde9d9" rowspan="2">A系統+會員IT</th>
-                        <th class="th-fde9d9" rowspan="2">金流IT</th>
-                        <th class="th-fde9d9" rowspan="2">D系統IT</th>
-                        <th class="th-fde9d9" rowspan="2">Q系統IT</th>
-                        <th class="th-fde9d9" rowspan="2">E系統IT</th>
+                        <th class="th-fde9d9" rowspan="2">監控人員</th>
                     </tr>
                     <tr>
                         <th class="th-fde9d9">無</th>
