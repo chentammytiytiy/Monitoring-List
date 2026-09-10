@@ -1160,10 +1160,28 @@
 			const record = recordsList[idx];
 			const form = document.getElementById('monitorForm');
 
+			let queueVal = record['排隊機制'];
+			let preTimeVal = '';
+			if (queueVal && queueVal.startsWith('一般排隊')) {
+				let match = queueVal.match(/預排(\d+)分/);
+				if (match) {
+					preTimeVal = match[1];
+				} else if (queueVal.includes('無預排')) {
+					preTimeVal = '0';
+				}
+				queueVal = '一般排隊';
+			}
+
 			Array.from(form.elements).forEach(input => {
 				if (!input.name) return;
 				let val = record[input.name];
 				if (val === '(無)') val = '';
+
+				if (input.name === '排隊機制') {
+					val = queueVal;
+				} else if (input.name === '預排提前時間') {
+					val = preTimeVal;
+				}
 
 				if (input.id === 'saleDateTime') {
 					if (record['開賣日期'] && record['時間']) {
@@ -1241,6 +1259,16 @@
 			const otherMonitor = document.getElementById('otherMonitor').value.trim();
 			record['其它單位監控'] = otherMonitor === '' ? '(無)' : otherMonitor;
 
+			if (record['排隊機制'] === '一般排隊') {
+				let preTime = record['預排提前時間'];
+				if (preTime && preTime !== '0' && preTime !== '無' && preTime !== '(無)') {
+					record['排隊機制'] = `一般排隊(預排${preTime}分)`;
+				} else {
+					record['排隊機制'] = '一般排隊(無預排)';
+				}
+			}
+			delete record['預排提前時間'];
+
 			if (editIndex > -1) {
                 record._id = recordsList[editIndex]._id;
 				recordsList[editIndex] = record;
@@ -1291,7 +1319,7 @@
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['活動名稱']}</td>
 						<td style="background-color: #D9D9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['機器等級']}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '無' ? 'V' : ''}</td>
-						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '一般排隊' ? (record['預排提前時間'] && record['預排提前時間'] !== '無' && record['預排提前時間'] !== '(無)' ? record['預排提前時間'] + '分' : 'V') : ''}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue && qQueue.startsWith('一般排隊') ? (qQueue.match(/預排(\d+)分/)?.[1] ? qQueue.match(/預排(\d+)分/)[1] + '分' : (qQueue.includes('無預排') ? '0分' : 'V')) : ''}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '流管畫面' ? 'V' : ''}</td>
 						<td style="background-color: #FFE699; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['售票通路']}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['機台流管']}</td>

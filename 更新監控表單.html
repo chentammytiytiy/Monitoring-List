@@ -1471,8 +1471,16 @@
 						<td class="col-code" style="${c('A節目代碼/E活動分類')}">${r['A節目代碼/E活動分類'] || '-'}</td>
 						<td class="col-machine" style="${c('機器等級')}">${r['機器等級'] || '-'}</td>
 						<td class="col-queue" style="${c('排隊機制')}">
-							${r['排隊機制'] || '-'}
-							${r['排隊機制'] === '一般排隊' && r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? `<br>${r['預排提前時間']}分` : ''}
+							${(() => {
+								let q = r['排隊機制'] || '-';
+								if (q.startsWith('一般排隊')) {
+									let match = q.match(/預排(\d+)分/);
+									if (match) return `一般排隊<br>預排${match[1]}分`;
+									if (q.includes('無預排')) return `一般排隊<br>無預排`;
+									return `一般排隊`;
+								}
+								return q;
+							})()}
 						</td>
 						<td class="col-channel" style="${c('售票通路')}">${r['售票通路'] || '-'}</td>
 						<td class="col-machineFlow" style="${c('機台流管')}">${r['機台流管'] || '-'}</td>
@@ -1566,6 +1574,20 @@
         function populateModal(idx) {
             const record = allHistoricalRecords[idx];
             currentEditingIndex = idx;
+            
+            let queueVal = record['排隊機制'];
+            let preTimeVal = '';
+            if (queueVal && queueVal.startsWith('一般排隊')) {
+                let match = queueVal.match(/預排(\d+)分/);
+                if (match) {
+                    preTimeVal = match[1];
+                } else if (queueVal.includes('無預排')) {
+                    preTimeVal = '0';
+                }
+                queueVal = '一般排隊';
+            }
+            
+            const tempRecord = { ...record, '排隊機制': queueVal, '預排提前時間': preTimeVal };
 
             const colsToMap = {
                 'saleDate': '開賣日期',
@@ -1600,7 +1622,7 @@
 
             // Set modal values
             Object.keys(colsToMap).forEach(col => {
-                const val = record[colsToMap[col]] || '';
+                const val = tempRecord[colsToMap[col]] || '';
                 if (col === 'saleDate') {
                     let formattedSaleDate = formatSaleDateStr(val);
                     document.getElementById('modal-' + col).value = formattedSaleDate.replace(/\//g, '-');
@@ -1665,6 +1687,14 @@
                 alert('請填寫預排提前時間');
                 return;
             }
+            let finalQueueStr = newQueue;
+            if (newQueue === '一般排隊') {
+                if (newPreQueueTime && newPreQueueTime !== '0') {
+                    finalQueueStr = `一般排隊(預排${newPreQueueTime}分)`;
+                } else {
+                    finalQueueStr = '一般排隊(無預排)';
+                }
+            }
             const newChannel = document.getElementById('modal-channel').value.trim();
             const newMachineFlow = document.getElementById('modal-machineFlow').value.trim();
             const newTickets = document.getElementById('modal-tickets').value.trim();
@@ -1696,8 +1726,7 @@
                 { k: 'A節目代碼/E活動分類', v: newCode },
                 { k: '活動名稱', v: newName },
                 { k: '機器等級', v: newMachine },
-                { k: '排隊機制', v: newQueue },
-                { k: '預排提前時間', v: newPreQueueTime },
+                { k: '排隊機制', v: finalQueueStr },
                 { k: '售票通路', v: newChannel },
                 { k: '機台流管', v: newMachineFlow },
                 { k: '可售張數', v: newTickets },
@@ -1822,7 +1851,7 @@
                         <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類']}</td>
                         <td ${s('機器等級', 'td-gray')}>${r['機器等級']}</td>
                         <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
-                        <td class="td-data">${qQueue === '一般排隊' ? (r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? r['預排提前時間'] + '分' : 'V') : ''}</td>
+                        <td class="td-data">${qQueue && qQueue.startsWith('一般排隊') ? (qQueue.match(/預排(\d+)分/)?.[1] ? qQueue.match(/預排(\d+)分/)[1] + '分' : (qQueue.includes('無預排') ? '0分' : 'V')) : ''}</td>
                         <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
                         <td ${s('售票通路', 'td-yellow')}>${r['售票通路']}</td>
                         <td class="td-data">${r['機台流管'] || ''}</td>
@@ -1983,7 +2012,7 @@
                         <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類'] || ''}</td>
                         <td ${s('機器等級', 'td-gray')}>${r['機器等級'] || ''}</td>
                         <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
-                        <td class="td-data">${qQueue === '一般排隊' ? (r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? r['預排提前時間'] + '分' : 'V') : ''}</td>
+                        <td class="td-data">${qQueue && qQueue.startsWith('一般排隊') ? (qQueue.match(/預排(\d+)分/)?.[1] ? qQueue.match(/預排(\d+)分/)[1] + '分' : (qQueue.includes('無預排') ? '0分' : 'V')) : ''}</td>
                         <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
                         <td ${s('售票通路', 'td-yellow')}>${r['售票通路'] || ''}</td>
                         <td class="td-data">${r['機台流管'] || ''}</td>
