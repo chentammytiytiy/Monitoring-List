@@ -1613,6 +1613,11 @@
         function closeEditModal() {
             document.getElementById('edit-modal').style.display = 'none';
             currentEditingIndex = -1;
+            const btn = document.getElementById('btn-save-modal');
+            if (btn) {
+                btn.textContent = '儲存變更';
+                btn.disabled = false;
+            }
         }
 
         async function confirmSaveModal() {
