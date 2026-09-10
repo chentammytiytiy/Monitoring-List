@@ -734,8 +734,11 @@
 					</div>
 
 					<div class="form-group" id="preQueueTimeGroup" style="display: none;">
-						<label for="preQueueTime">預排提前時間</label>
-						<input type="text" id="preQueueTime" name="預排提前時間" value="無" placeholder="例：15分、30分">
+						<label for="preQueueTime">預排提前時間 <span style="color:#f472b6">*</span></label>
+						<div style="display: flex; align-items: center; gap: 0.5rem;">
+							<input type="number" id="preQueueTime" name="預排提前時間" value="" placeholder="不需預排請填0" style="flex: 1;">
+							<span style="font-weight: 500;">分</span>
+						</div>
 					</div>
 
 					<div class="form-group">
@@ -911,7 +914,9 @@
 					preQueueGroup.style.display = '';
 				} else {
 					preQueueGroup.style.display = 'none';
-					document.getElementById('preQueueTime').value = '無';
+					const preQueueEl = document.getElementById('preQueueTime');
+					preQueueEl.value = '';
+					clearFieldError(preQueueEl);
 				}
 			});
 		});
@@ -963,6 +968,22 @@
 				}
 			});
 
+			// 動態檢查預排提前時間
+			const queueType = document.querySelector('input[name="排隊機制"]:checked');
+			if (queueType && queueType.value === '一般排隊') {
+				const preQueueEl = document.getElementById('preQueueTime');
+				if (!preQueueEl || !preQueueEl.value.trim()) {
+					missing.push('預排提前時間');
+					if (preQueueEl) {
+						preQueueEl.classList.add('input-error');
+						const msg = document.createElement('div');
+						msg.className = 'field-error-msg';
+						msg.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> 此欄位為必填`;
+						preQueueEl.closest('.form-group').appendChild(msg);
+					}
+				}
+			}
+
 			if (missing.length > 0) {
 				const banner = document.createElement('div');
 				banner.id = 'validation-banner';
@@ -990,6 +1011,12 @@
 				el.addEventListener('change', () => clearFieldError(el));
 			}
 		});
+
+		const preQueueEl = document.getElementById('preQueueTime');
+		if (preQueueEl) {
+			preQueueEl.addEventListener('input', () => clearFieldError(preQueueEl));
+			preQueueEl.addEventListener('change', () => clearFieldError(preQueueEl));
+		}
 		let recordsList = [];
 		let editIndex = -1;
 		let currentUser = '';
@@ -1264,7 +1291,7 @@
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['活動名稱']}</td>
 						<td style="background-color: #D9D9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['機器等級']}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '無' ? 'V' : ''}</td>
-						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '一般排隊' ? (record['預排提前時間'] && record['預排提前時間'] !== '無' && record['預排提前時間'] !== '(無)' ? record['預排提前時間'] : 'V') : ''}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '一般排隊' ? (record['預排提前時間'] && record['預排提前時間'] !== '無' && record['預排提前時間'] !== '(無)' ? record['預排提前時間'] + '分' : 'V') : ''}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '流管畫面' ? 'V' : ''}</td>
 						<td style="background-color: #FFE699; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['售票通路']}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['機台流管']}</td>
