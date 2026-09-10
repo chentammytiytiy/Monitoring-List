@@ -733,6 +733,11 @@
 						</div>
 					</div>
 
+					<div class="form-group" id="preQueueTimeGroup" style="display: none;">
+						<label for="preQueueTime">預排提前時間</label>
+						<input type="text" id="preQueueTime" name="預排提前時間" value="無" placeholder="例：15分、30分">
+					</div>
+
 					<div class="form-group">
 						<label for="machineFlowControl">機台流管</label>
 						<input type="number" id="machineFlowControl" name="機台流管" value="500" placeholder="請輸入機台流管">
@@ -898,6 +903,19 @@
 			}
 		});
 
+		// 處理排隊機制切換
+		document.querySelectorAll('input[name="排隊機制"]').forEach(radio => {
+			radio.addEventListener('change', function() {
+				const preQueueGroup = document.getElementById('preQueueTimeGroup');
+				if (this.value === '一般排隊') {
+					preQueueGroup.style.display = '';
+				} else {
+					preQueueGroup.style.display = 'none';
+					document.getElementById('preQueueTime').value = '無';
+				}
+			});
+		});
+
 		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKAKdT8uMsLjhKEXYJueCuN72uggHihcBSy396BHirI6bQqz592fB-v4Y0DAmgzyfILQ/exec';
 
 		// ====================================================
@@ -1031,6 +1049,11 @@
 			if (window.fp) window.fp.clear();
 			editIndex = -1;
 
+			const preQueueGroup = document.getElementById('preQueueTimeGroup');
+			if (preQueueGroup) {
+				preQueueGroup.style.display = 'none';
+			}
+
 			const btnSave = document.querySelector('button[type="submit"].btn-save');
 			btnSave.innerHTML = `
 				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1124,6 +1147,9 @@
 
 				if (input.type === 'radio') {
 					input.checked = (input.value === val);
+					if (input.name === '排隊機制' && input.checked) {
+						input.dispatchEvent(new Event('change'));
+					}
 				} else if (input.id !== 'saleDateTime') {
 					input.value = val;
 				}
@@ -1238,7 +1264,7 @@
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['活動名稱']}</td>
 						<td style="background-color: #D9D9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['機器等級']}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '無' ? 'V' : ''}</td>
-						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '一般排隊' ? 'V' : ''}</td>
+						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '一般排隊' ? (record['預排提前時間'] && record['預排提前時間'] !== '無' && record['預排提前時間'] !== '(無)' ? record['預排提前時間'] : 'V') : ''}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${qQueue === '流管畫面' ? 'V' : ''}</td>
 						<td style="background-color: #FFE699; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['售票通路']}</td>
 						<td style="border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding:4px;">${record['機台流管']}</td>
