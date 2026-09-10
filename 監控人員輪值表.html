@@ -1220,7 +1220,10 @@
 						<td class="col-code" style="${c('A節目代碼/E活動分類')}">${r['A節目代碼/E活動分類'] || '-'}</td>
 						<td class="col-level" style="${c('監控等級')}">${r['監控等級'] || '-'}</td>
 						<td class="col-machine" style="${c('機器等級')}">${r['機器等級'] || '-'}</td>
-						<td class="col-queue" style="${c('排隊機制')}">${r['排隊機制'] || '-'}</td>
+						<td class="col-queue" style="${c('排隊機制')}">
+							${r['排隊機制'] || '-'}
+							${r['排隊機制'] === '一般排隊' && r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? `<br>${r['預排提前時間']}分` : ''}
+						</td>
 						<td class="col-channel" style="${c('售票通路')}">${r['售票通路'] || '-'}</td>
 						<td class="col-pm">${buildSelectHtml('pm', '監控PM', r['監控PM'], origIdx)}</td>
 						<td class="col-it_a">${buildSelectHtml('it_a', 'A系統+會員IT', r['A系統+會員IT'], origIdx)}</td>
@@ -1366,7 +1369,7 @@
                         <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類'] || ''}</td>
                         <td ${s('機器等級', 'td-gray')}>${r['機器等級'] || ''}</td>
                         <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
-                        <td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
+                        <td class="td-data">${qQueue === '一般排隊' ? (r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? r['預排提前時間'] + '分' : 'V') : ''}</td>
                         <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
                         <td ${s('售票通路', 'td-yellow')}>${r['售票通路'] || ''}</td>
                         <td class="td-data">${r['機台流管'] || ''}</td>

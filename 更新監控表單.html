@@ -952,11 +952,18 @@
                         </div>
                         <div class="form-group">
                             <label>排隊機制</label>
-                            <select id="modal-queue">
+                            <select id="modal-queue" onchange="toggleModalPreQueueTime()">
                                 <option value="無">無</option>
                                 <option value="一般排隊">一般排隊</option>
                                 <option value="流管畫面">流管畫面</option>
                             </select>
+                        </div>
+                        <div class="form-group" id="modal-preQueueTimeGroup" style="display: none;">
+                            <label>預排提前時間 <span style="color:#f472b6">*</span></label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="number" id="modal-preQueueTime" placeholder="不需預排請填0" style="flex: 1;">
+                                <span style="font-weight: 500;">分</span>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>售票通路</label>
@@ -1463,7 +1470,10 @@
 						<td class="col-sys" style="${c('系統別')}">${r['系統別'] || '-'}</td>
 						<td class="col-code" style="${c('A節目代碼/E活動分類')}">${r['A節目代碼/E活動分類'] || '-'}</td>
 						<td class="col-machine" style="${c('機器等級')}">${r['機器等級'] || '-'}</td>
-						<td class="col-queue" style="${c('排隊機制')}">${r['排隊機制'] || '-'}</td>
+						<td class="col-queue" style="${c('排隊機制')}">
+							${r['排隊機制'] || '-'}
+							${r['排隊機制'] === '一般排隊' && r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? `<br>${r['預排提前時間']}分` : ''}
+						</td>
 						<td class="col-channel" style="${c('售票通路')}">${r['售票通路'] || '-'}</td>
 						<td class="col-machineFlow" style="${c('機台流管')}">${r['機台流管'] || '-'}</td>
 						<td class="col-tickets" style="${c('可售張數')}">${r['可售張數'] || '-'}</td>
@@ -1542,6 +1552,17 @@
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
+        function toggleModalPreQueueTime() {
+            const queueType = document.getElementById('modal-queue').value;
+            const group = document.getElementById('modal-preQueueTimeGroup');
+            if (queueType === '一般排隊') {
+                group.style.display = '';
+            } else {
+                group.style.display = 'none';
+                document.getElementById('modal-preQueueTime').value = '';
+            }
+        }
+
         function populateModal(idx) {
             const record = allHistoricalRecords[idx];
             currentEditingIndex = idx;
@@ -1556,6 +1577,7 @@
                 'name': '活動名稱',
                 'machine': '機器等級',
                 'queue': '排隊機制',
+                'preQueueTime': '預排提前時間',
                 'channel': '售票通路',
                 'machineFlow': '機台流管',
                 'tickets': '可售張數',
@@ -1608,6 +1630,7 @@
                     document.getElementById('modal-' + col).value = val;
                 }
             });
+            toggleModalPreQueueTime();
         }
 
         function closeEditModal() {
@@ -1637,6 +1660,11 @@
             const newName = document.getElementById('modal-name').value.trim();
             const newMachine = document.getElementById('modal-machine').value.trim();
             const newQueue = document.getElementById('modal-queue').value.trim();
+            const newPreQueueTime = document.getElementById('modal-preQueueTime').value.trim();
+            if (newQueue === '一般排隊' && !newPreQueueTime) {
+                alert('請填寫預排提前時間');
+                return;
+            }
             const newChannel = document.getElementById('modal-channel').value.trim();
             const newMachineFlow = document.getElementById('modal-machineFlow').value.trim();
             const newTickets = document.getElementById('modal-tickets').value.trim();
@@ -1669,6 +1697,7 @@
                 { k: '活動名稱', v: newName },
                 { k: '機器等級', v: newMachine },
                 { k: '排隊機制', v: newQueue },
+                { k: '預排提前時間', v: newPreQueueTime },
                 { k: '售票通路', v: newChannel },
                 { k: '機台流管', v: newMachineFlow },
                 { k: '可售張數', v: newTickets },
@@ -1793,7 +1822,7 @@
                         <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類']}</td>
                         <td ${s('機器等級', 'td-gray')}>${r['機器等級']}</td>
                         <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
-                        <td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
+                        <td class="td-data">${qQueue === '一般排隊' ? (r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? r['預排提前時間'] + '分' : 'V') : ''}</td>
                         <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
                         <td ${s('售票通路', 'td-yellow')}>${r['售票通路']}</td>
                         <td class="td-data">${r['機台流管'] || ''}</td>
@@ -1954,7 +1983,7 @@
                         <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類'] || ''}</td>
                         <td ${s('機器等級', 'td-gray')}>${r['機器等級'] || ''}</td>
                         <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
-                        <td class="td-data">${qQueue === '一般排隊' ? 'V' : ''}</td>
+                        <td class="td-data">${qQueue === '一般排隊' ? (r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? r['預排提前時間'] + '分' : 'V') : ''}</td>
                         <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
                         <td ${s('售票通路', 'td-yellow')}>${r['售票通路'] || ''}</td>
                         <td class="td-data">${r['機台流管'] || ''}</td>
