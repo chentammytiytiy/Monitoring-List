@@ -816,6 +816,27 @@
             }).catch(e => console.error('GAS sync error', e));
         }
 
+        const rolePermissionsMap = {
+            'admin': ['監控申請表單', '查詢及更新監控表單', '監控人員輪值表', '售票行事曆', '帳號權限管理'],
+            'editor': ['監控申請表單', '查詢及更新監控表單', '監控人員輪值表', '售票行事曆'],
+            'viewer': ['查詢及更新監控表單', '監控人員輪值表', '售票行事曆']
+        };
+
+        function autoSelectPermissions(role, containerSelector) {
+            const perms = rolePermissionsMap[role] || [];
+            document.querySelectorAll(`${containerSelector} input[type="checkbox"]`).forEach(cb => {
+                cb.checked = perms.includes(cb.value);
+            });
+        }
+
+        document.getElementById('new-role').addEventListener('change', function() {
+            autoSelectPermissions(this.value, '#permissions-grid');
+        });
+
+        document.getElementById('edit-role').addEventListener('change', function() {
+            autoSelectPermissions(this.value, '#edit-permissions-grid');
+        });
+
         function getPermissions(containerSelector) {
             const perms = [];
             document.querySelectorAll(`${containerSelector} input[type="checkbox"]:checked`).forEach(cb => {
