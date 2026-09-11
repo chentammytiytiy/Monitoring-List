@@ -673,11 +673,12 @@
 					</div>
 
 					<div class="form-group">
-						<label for="ticketChannel">售票通路</label>
-						<select id="ticketChannel" name="售票通路">
+						<label for="ticketChannel">售票通路 <span style="color:#f472b6">*</span></label>
+						<select id="ticketChannel" name="售票通路" required>
+							<option value="" selected disabled hidden>請選擇</option>
 							<option value="網站">網站</option>
 							<option value="機台">機台</option>
-							<option value="網站+機台" selected>網站+機台</option>
+							<option value="網站+機台">網站+機台</option>
 						</select>
 					</div>
 				</div>
