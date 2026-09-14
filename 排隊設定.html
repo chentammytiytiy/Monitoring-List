@@ -773,60 +773,11 @@
         </div>
     </div>
 
-        <div class="main-content">
+    
+    <div class="main-content">
         <div class="container">
             <div class="header-row">
                 <h1>排隊設定</h1>
-            </div>
-            
-            <form id="queue-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                <div class="form-group">
-                    <label>售票時間</label>
-                    <input type="datetime-local" id="f-sale-time" required>
-                </div>
-                <div class="form-group">
-                    <label>預排時間</label>
-                    <input type="time" id="f-pre-queue-time" required>
-                </div>
-                <div class="form-group">
-                    <label>活動名稱</label>
-                    <input type="text" id="f-event-name" required>
-                </div>
-                <div class="form-group">
-                    <label>節目代碼</label>
-                    <input type="text" id="f-program-code" required>
-                </div>
-                <div class="form-group">
-                    <label>場次代碼</label>
-                    <input type="text" id="f-session-code" required>
-                </div>
-                <div class="form-group">
-                    <label>排隊方式</label>
-                    <input type="text" id="f-queue-method" required>
-                </div>
-                <div class="form-group">
-                    <label>預排網頁提醒文字</label>
-                    <input type="text" id="f-reminder-text">
-                </div>
-                <div class="form-group">
-                    <label>Queue-itUI或文字訊息</label>
-                    <input type="text" id="f-queue-it-msg">
-                </div>
-                <div class="form-group">
-                    <label>Queue-it每分鐘放入</label>
-                    <input type="text" id="f-queue-it-rate">
-                </div>
-                <div class="form-group">
-                    <label>通知IT時間</label>
-                    <input type="datetime-local" id="f-notify-it-time">
-                </div>
-                <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
-                    <button type="submit" class="btn-search" id="btn-submit">儲存設定</button>
-                </div>
-            </form>
-
-            <div class="header-row">
-                <h2>查詢建檔資料</h2>
                 <button type="button" class="btn-refresh" id="btn-refresh">重新整理</button>
             </div>
             
@@ -834,6 +785,7 @@
                 <table id="data-table">
                     <thead>
                         <tr>
+                            <th>操作</th>
                             <th>售票時間</th>
                             <th>預排時間</th>
                             <th>活動名稱</th>
@@ -853,16 +805,210 @@
         </div>
     </div>
 
+    <!-- Modal for Editing -->
+    <div id="edit-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>編輯排隊設定</h2>
+                <button class="btn-close-modal" id="btn-close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="queue-form" class="form-grid">
+                    <div class="form-group">
+                        <label>售票時間 (唯讀)</label>
+                        <input type="text" id="f-sale-time" readonly style="background:#e2e8f0;">
+                    </div>
+                    <div class="form-group">
+                        <label>活動名稱 (唯讀)</label>
+                        <input type="text" id="f-event-name" readonly style="background:#e2e8f0;">
+                    </div>
+                    <div class="form-group">
+                        <label>節目代碼 (唯讀)</label>
+                        <input type="text" id="f-program-code" readonly style="background:#e2e8f0;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>預排時間</label>
+                        <input type="time" id="f-pre-queue-time">
+                    </div>
+                    <div class="form-group">
+                        <label>場次代碼</label>
+                        <input type="text" id="f-session-code">
+                    </div>
+                    <div class="form-group">
+                        <label>排隊方式</label>
+                        <input type="text" id="f-queue-method">
+                    </div>
+                    <div class="form-group">
+                        <label>預排網頁提醒文字</label>
+                        <input type="text" id="f-reminder-text">
+                    </div>
+                    <div class="form-group">
+                        <label>Queue-itUI或文字訊息</label>
+                        <input type="text" id="f-queue-it-msg">
+                    </div>
+                    <div class="form-group">
+                        <label>Queue-it每分鐘放入</label>
+                        <input type="text" id="f-queue-it-rate">
+                    </div>
+                    <div class="form-group">
+                        <label>通知IT時間</label>
+                        <input type="datetime-local" id="f-notify-it-time">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="btn-cancel-modal">取消</button>
+                <button type="button" class="btn-save-modal" id="btn-save-modal">儲存</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKAKdT8uMsLjhKEXYJueCuN72uggHihcBSy396BHirI6bQqz592fB-v4Y0DAmgzyfILQ/exec';
+        let currentQueueData = [];
+        let currentMainEvents = [];
+        let editingEventId = null;
 
-        document.getElementById('queue-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const btnSubmit = document.getElementById('btn-submit');
-            btnSubmit.disabled = true;
-            btnSubmit.textContent = '儲存中...';
+        function formatDate(dateStr, timeStr) {
+            try {
+                if(!dateStr) return '';
+                const d = new Date(dateStr);
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                
+                let timePart = '';
+                if(timeStr) {
+                    const t = new Date(timeStr);
+                    if(!isNaN(t.getTime())) {
+                        const HH = String(t.getHours()).padStart(2, '0');
+                        const MM = String(t.getMinutes()).padStart(2, '0');
+                        timePart = ` ${HH}:${MM}`;
+                    } else if (typeof timeStr === 'string' && timeStr.includes(':')) {
+                        timePart = ' ' + timeStr;
+                    }
+                }
+                return `${yyyy}/${mm}/${dd}${timePart}`;
+            } catch(e) {
+                return dateStr;
+            }
+        }
 
-            const data = {
+        async function loadData() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">載入中...</td></tr>';
+            
+            try {
+                const [mainRes, queueRes] = await Promise.all([
+                    fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`),
+                    fetch(`${SCRIPT_URL}?action=get_queue&t=${new Date().getTime()}`)
+                ]);
+                
+                const mainData = await mainRes.json();
+                currentQueueData = await queueRes.json();
+                
+                currentMainEvents = mainData.filter(row => {
+                    const mechanism = row['排隊機制'] || '';
+                    return mechanism.includes('流管畫面') || mechanism.includes('一般排隊');
+                });
+                
+                renderTable();
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: red;">載入失敗</td></tr>';
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            if (currentMainEvents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">無需要排隊設定的活動資料</td></tr>';
+                return;
+            }
+            
+            currentMainEvents.forEach((event, idx) => {
+                const saleTime = formatDate(event['開賣日期'], event['時間']);
+                const eventName = event['活動名稱'] || '';
+                const programCode = event['A節目代碼/E活動分類'] || '';
+                
+                const queueItem = currentQueueData.find(q => q['_id'] === event['_id'] || (q['活動名稱'] === eventName && q['節目代碼'] === programCode)) || {};
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><button class="btn-edit" onclick="openEditModal(${idx})">編輯</button></td>
+                    <td>${saleTime}</td>
+                    <td>${queueItem['預排時間'] || ''}</td>
+                    <td class="col-name">${eventName}</td>
+                    <td>${programCode}</td>
+                    <td>${queueItem['場次代碼'] || ''}</td>
+                    <td>${queueItem['排隊方式'] || ''}</td>
+                    <td>${queueItem['預排網頁提醒文字'] || ''}</td>
+                    <td>${queueItem['Queue-itUI或文字訊息'] || ''}</td>
+                    <td>${queueItem['Queue-it每分鐘放入'] || ''}</td>
+                    <td>${queueItem['通知IT時間'] || ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.openEditModal = function(idx) {
+            const event = currentMainEvents[idx];
+            editingEventId = event['_id'];
+            
+            const saleTime = formatDate(event['開賣日期'], event['時間']);
+            const eventName = event['活動名稱'] || '';
+            const programCode = event['A節目代碼/E活動分類'] || '';
+            
+            const queueItem = currentQueueData.find(q => q['_id'] === event['_id'] || (q['活動名稱'] === eventName && q['節目代碼'] === programCode)) || {};
+            
+            document.getElementById('f-sale-time').value = saleTime;
+            document.getElementById('f-event-name').value = eventName;
+            document.getElementById('f-program-code').value = programCode;
+            
+            document.getElementById('f-pre-queue-time').value = queueItem['預排時間'] || '';
+            document.getElementById('f-session-code').value = queueItem['場次代碼'] || '';
+            document.getElementById('f-queue-method').value = queueItem['排隊方式'] || '';
+            document.getElementById('f-reminder-text').value = queueItem['預排網頁提醒文字'] || '';
+            document.getElementById('f-queue-it-msg').value = queueItem['Queue-itUI或文字訊息'] || '';
+            document.getElementById('f-queue-it-rate').value = queueItem['Queue-it每分鐘放入'] || '';
+            
+            // Format datetime-local for output
+            let notifyTime = queueItem['通知IT時間'] || '';
+            if (notifyTime && notifyTime.includes('/')) {
+                // If the user entered YYYY/MM/DD HH:MM, convert to YYYY-MM-DDTHH:MM
+                const d = new Date(notifyTime);
+                if (!isNaN(d.getTime())) {
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const HH = String(d.getHours()).padStart(2, '0');
+                    const MM = String(d.getMinutes()).padStart(2, '0');
+                    notifyTime = `${yyyy}-${mm}-${dd}T${HH}:${MM}`;
+                }
+            }
+            document.getElementById('f-notify-it-time').value = notifyTime;
+            
+            document.getElementById('edit-modal').style.display = 'flex';
+        };
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+            editingEventId = null;
+        }
+
+        document.getElementById('btn-close-modal').addEventListener('click', closeEditModal);
+        document.getElementById('btn-cancel-modal').addEventListener('click', closeEditModal);
+
+        document.getElementById('btn-save-modal').addEventListener('click', function() {
+            const btnSave = document.getElementById('btn-save-modal');
+            btnSave.disabled = true;
+            btnSave.textContent = '儲存中...';
+
+            const dataToSave = {
+                "_id": editingEventId,
                 "售票時間": document.getElementById('f-sale-time').value,
                 "預排時間": document.getElementById('f-pre-queue-time').value,
                 "活動名稱": document.getElementById('f-event-name').value,
@@ -881,57 +1027,67 @@
                 headers: {
                     'Content-Type': 'text/plain',
                 },
-                body: JSON.stringify({ action: 'save_queue', data: [data] })
+                body: JSON.stringify({ action: 'save_queue', data: [dataToSave] })
             }).then(() => {
                 alert('儲存成功');
-                btnSubmit.disabled = false;
-                btnSubmit.textContent = '儲存設定';
-                document.getElementById('queue-form').reset();
+                btnSave.disabled = false;
+                btnSave.textContent = '儲存';
+                closeEditModal();
                 loadData();
             }).catch(err => {
                 alert('儲存失敗');
-                btnSubmit.disabled = false;
-                btnSubmit.textContent = '儲存設定';
+                btnSave.disabled = false;
+                btnSave.textContent = '儲存';
             });
         });
-
-        function loadData() {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">載入中...</td></tr>';
-            
-            fetch(SCRIPT_URL + '?action=get_queue')
-                .then(res => res.json())
-                .then(data => {
-                    tbody.innerHTML = '';
-                    if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">無資料</td></tr>';
-                        return;
-                    }
-                    data.forEach(row => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${row['售票時間'] || ''}</td>
-                            <td>${row['預排時間'] || ''}</td>
-                            <td>${row['活動名稱'] || ''}</td>
-                            <td>${row['節目代碼'] || ''}</td>
-                            <td>${row['場次代碼'] || ''}</td>
-                            <td>${row['排隊方式'] || ''}</td>
-                            <td>${row['預排網頁提醒文字'] || ''}</td>
-                            <td>${row['Queue-itUI或文字訊息'] || ''}</td>
-                            <td>${row['Queue-it每分鐘放入'] || ''}</td>
-                            <td>${row['通知IT時間'] || ''}</td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                })
-                .catch(err => {
-                    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: red;">載入失敗</td></tr>';
-                });
-        }
 
         document.getElementById('btn-refresh').addEventListener('click', loadData);
         window.addEventListener('load', loadData);
     </script>
-</body>
-</html>
+<script>
 
+        // ── 登入驗證 & 登出 ──
+        const SESSION_KEY = 'monitoring_system_session';
+        (function checkAuth() {
+            const s = sessionStorage.getItem(SESSION_KEY);
+            let session = null;
+            try { session = JSON.parse(s); } catch(e) {}
+            if (!session || !session.username) {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (session.role !== 'admin') {
+                const perms = session.permissions || [];
+                if (!perms.includes('查詢及更新監控表單')) {
+                    alert('您沒有權限存取此頁面！');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                document.querySelectorAll('.sidebar-menu a').forEach(a => {
+                    const text = a.textContent.trim();
+                    if (text === '帳號權限管理') return;
+                    if (!perms.includes(text)) {
+                        const li = a.closest('li');
+                        if (li) li.style.display = 'none';
+                    }
+                });
+            }
+            const infoEl = document.getElementById('sidebar-user-info');
+            if (infoEl) infoEl.textContent = session.name || session.username;
+            if (session.role === 'admin') {
+                const li = document.getElementById('li-admin-link');
+                if (li) li.style.display = '';
+            }
+        })();
+
+        document.getElementById('btn-logout').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('確定要登出嗎？')) {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+
+</html>

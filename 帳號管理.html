@@ -669,6 +669,7 @@
                         <label class="perm-chip"><input type="checkbox" name="perm" value="監控人員輪值表"> 監控人員輪值表</label>
                         <label class="perm-chip"><input type="checkbox" name="perm" value="售票行事曆"> 售票行事曆</label>
                         <label class="perm-chip"><input type="checkbox" name="perm" value="帳號權限管理"> 帳號權限管理</label>
+                        <label class="perm-chip"><input type="checkbox" name="perm" value="排隊設定相關"> 排隊設定相關</label>
                     </div>
                 </div>
 
@@ -751,6 +752,7 @@
                     <label class="perm-chip"><input type="checkbox" name="edit-perm" value="監控人員輪值表"> 監控人員輪值表</label>
                     <label class="perm-chip"><input type="checkbox" name="edit-perm" value="售票行事曆"> 售票行事曆</label>
                     <label class="perm-chip"><input type="checkbox" name="edit-perm" value="帳號權限管理"> 帳號權限管理</label>
+                    <label class="perm-chip"><input type="checkbox" name="edit-perm" value="排隊設定相關"> 排隊設定相關</label>
                 </div>
             </div>
             <div class="modal-footer">
@@ -823,7 +825,7 @@
         }
 
         const rolePermissionsMap = {
-            'admin': ['監控申請表單', '查詢及更新監控表單', '監控人員輪值表', '售票行事曆', '帳號權限管理'],
+            'admin': ['監控申請表單', '查詢及更新監控表單', '監控人員輪值表', '售票行事曆', '帳號權限管理', '排隊設定相關'],
             'editor': ['監控申請表單', '查詢及更新監控表單', '售票行事曆'],
             'viewer': ['查詢及更新監控表單', '監控人員輪值表', '售票行事曆']
         };
