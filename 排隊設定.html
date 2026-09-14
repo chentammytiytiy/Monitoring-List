@@ -1,0 +1,937 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查詢及更新監控表單</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --input-bg: #ffffff;
+            color-scheme: light;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', "微軟正黑體", sans-serif;
+            background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 200px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0.8rem;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            flex: 1;
+        }
+
+        .sidebar-menu a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-menu a:hover {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+        }
+
+        .sidebar-menu a.active {
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            color: white;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 0.4rem 0;
+        }
+
+        .sidebar-logout a {
+            text-decoration: none;
+            color: #ef4444;
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar-logout a:hover {
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        .sidebar-user {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 0.5rem 0.5rem 0;
+            line-height: 1.4;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 98%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 2rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            background: rgba(79, 70, 229, 0.1);
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: rgba(79, 70, 229, 0.2);
+        }
+
+        .nav-link:disabled {
+            opacity: 0.5;
+            cursor: not-allowed !important;
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-muted);
+        }
+
+        .search-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            background: rgba(0, 0, 0, 0.02);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            align-items: flex-end;
+            max-width: fit-content;
+        }
+
+        .date-range-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .date-range-group input {
+            width: 105px;
+            text-align: center;
+            padding: 0.6rem 0.5rem;
+        }
+
+        .date-range-group span {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: var(--text-muted);
+        }
+
+        input,
+        select {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            outline: none;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        input[type="checkbox"] {
+            appearance: auto;
+            -webkit-appearance: checkbox;
+            width: 16px;
+            height: 16px;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .search-btn-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.8rem;
+        }
+
+        button.btn-clear {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            height: 35px;
+            min-width: 80px;
+            transition: all 0.2s;
+        }
+
+        button.btn-clear:hover {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.3);
+        }
+
+        button.btn-refresh {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            height: 35px;
+            min-width: 90px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        button.btn-refresh:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        button.btn-search {
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            height: 35px;
+            min-width: 90px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+        }
+
+        button.btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        /* Table Styling */
+        .table-wrapper {
+            overflow: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            max-height: calc(100vh - 340px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        thead {
+            background: #f1f5f9;
+        }
+
+        th,
+        td {
+            padding: 0.3rem 0.4rem;
+            text-align: left;
+            font-size: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            letter-spacing: -0.01em;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            background: #f1f5f9;
+            z-index: 10;
+        }
+
+        td {
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        td.col-name {
+            white-space: pre-wrap;
+            word-break: break-all;
+            min-width: 15rem;
+            max-width: 15rem;
+        }
+
+        td.col-note {
+            white-space: pre-wrap;
+            word-break: break-all;
+            min-width: 15rem;
+            max-width: 15rem;
+        }
+
+        td.col-saleDate {
+            white-space: nowrap;
+            min-width: 100px;
+        }
+
+        td.col-time {
+            white-space: nowrap;
+            min-width: 50px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        th:last-child,
+        td:last-child {
+            border-right: none;
+        }
+
+        tbody tr {
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .sticky-col {
+            position: sticky;
+            z-index: 5;
+        }
+        thead th.sticky-col {
+            background: #f1f5f9;
+            z-index: 15;
+            top: 0;
+        }
+
+        /* Custom tooltip for the first column checkboxes */
+        .checkbox-cell {
+            /* position: relative; removed to avoid overriding sticky-col */
+        }
+        .checkbox-cell:hover::after {
+            content: "勾選產生通知信";
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 8px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            white-space: nowrap;
+            z-index: 9999;
+            pointer-events: none;
+            font-weight: normal;
+        }
+        tbody td.sticky-col {
+            background: #fff;
+        }
+        tbody tr:hover td.sticky-col {
+            background: #f8fafc;
+        }
+        .sticky-col-last {
+            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+            border-right: 1px solid var(--border-color) !important;
+        }
+
+        #result-count {
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .apply-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Pagination Styling */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .page-btn {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .page-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-copy {
+            background: #bae6fd;
+            color: #0369a1;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            margin-right: 0.2rem;
+        }
+
+        .btn-copy:hover {
+            background: #7dd3fc;
+            color: #0c4a6e;
+        }
+
+        .btn-edit {
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .btn-edit:hover {
+            background: #cbd5e1;
+            color: #1e293b;
+        }
+
+        .btn-save {
+            background: #34d399;
+            color: white;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            display: none;
+        }
+
+        .btn-save:hover {
+            background: #10b981;
+        }
+
+        .btn-delete {
+            background: #fecaca;
+            color: #991b1b;
+            border: none;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            margin-left: 0.2rem;
+        }
+
+        .btn-delete:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .cell-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.2rem;
+            font-size: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: #F8FAFC;
+        }
+
+        /* Modal Styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-content {
+            background: #fff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+        .btn-close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .btn-close-modal:hover {
+            color: #ef4444;
+        }
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.2rem;
+        }
+        .modal-footer {
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            background: #f8fafc;
+            border-radius: 0 0 16px 16px;
+        }
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-cancel:hover {
+            background: #cbd5e1;
+        }
+        .btn-save-modal {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+        }
+        .btn-save-modal:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+        }
+        .modal-body .form-group label {
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .modal-body input, .modal-body select, .modal-body textarea {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-title">系統選單</div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="監控表.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    監控申請表單
+                </a>
+            </li>
+            <li>
+                <a href="更新監控表單.html" class="active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    查詢及更新監控表單
+                </a>
+            </li>
+            <li>
+                <a href="監控人員輪值表.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    監控人員輪值表
+                </a>
+            </li>
+            <li>
+                <a href="售票行事曆.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    售票行事曆
+                </a>
+            </li>
+                        <li>
+                <a href="排隊設定.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    排隊設定相關
+                </a>
+            </li>
+            <li id="li-admin-link" style="display:none;">
+                <a href="帳號管理.html">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><line x1="17" y1="11" x2="23" y2="11"></line><line x1="20" y1="8" x2="20" y2="14"></line></svg>
+                    帳號權限管理
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-user" id="sidebar-user-info"></div>
+        <div class="sidebar-logout">
+            <a href="#" id="btn-logout">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                登出
+            </a>
+        </div>
+    </div>
+
+        <div class="main-content">
+        <div class="container">
+            <div class="header-row">
+                <h1>排隊設定</h1>
+            </div>
+            
+            <form id="queue-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                <div class="form-group">
+                    <label>售票時間</label>
+                    <input type="datetime-local" id="f-sale-time" required>
+                </div>
+                <div class="form-group">
+                    <label>預排時間</label>
+                    <input type="time" id="f-pre-queue-time" required>
+                </div>
+                <div class="form-group">
+                    <label>活動名稱</label>
+                    <input type="text" id="f-event-name" required>
+                </div>
+                <div class="form-group">
+                    <label>節目代碼</label>
+                    <input type="text" id="f-program-code" required>
+                </div>
+                <div class="form-group">
+                    <label>場次代碼</label>
+                    <input type="text" id="f-session-code" required>
+                </div>
+                <div class="form-group">
+                    <label>排隊方式</label>
+                    <input type="text" id="f-queue-method" required>
+                </div>
+                <div class="form-group">
+                    <label>預排網頁提醒文字</label>
+                    <input type="text" id="f-reminder-text">
+                </div>
+                <div class="form-group">
+                    <label>Queue-itUI或文字訊息</label>
+                    <input type="text" id="f-queue-it-msg">
+                </div>
+                <div class="form-group">
+                    <label>Queue-it每分鐘放入</label>
+                    <input type="text" id="f-queue-it-rate">
+                </div>
+                <div class="form-group">
+                    <label>通知IT時間</label>
+                    <input type="datetime-local" id="f-notify-it-time">
+                </div>
+                <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn-search" id="btn-submit">儲存設定</button>
+                </div>
+            </form>
+
+            <div class="header-row">
+                <h2>查詢建檔資料</h2>
+                <button type="button" class="btn-refresh" id="btn-refresh">重新整理</button>
+            </div>
+            
+            <div class="table-wrapper">
+                <table id="data-table">
+                    <thead>
+                        <tr>
+                            <th>售票時間</th>
+                            <th>預排時間</th>
+                            <th>活動名稱</th>
+                            <th>節目代碼</th>
+                            <th>場次代碼</th>
+                            <th>排隊方式</th>
+                            <th>預排網頁提醒文字</th>
+                            <th>Queue-itUI或文字訊息</th>
+                            <th>Queue-it每分鐘放入</th>
+                            <th>通知IT時間</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKAKdT8uMsLjhKEXYJueCuN72uggHihcBSy396BHirI6bQqz592fB-v4Y0DAmgzyfILQ/exec';
+
+        document.getElementById('queue-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById('btn-submit');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = '儲存中...';
+
+            const data = {
+                "售票時間": document.getElementById('f-sale-time').value,
+                "預排時間": document.getElementById('f-pre-queue-time').value,
+                "活動名稱": document.getElementById('f-event-name').value,
+                "節目代碼": document.getElementById('f-program-code').value,
+                "場次代碼": document.getElementById('f-session-code').value,
+                "排隊方式": document.getElementById('f-queue-method').value,
+                "預排網頁提醒文字": document.getElementById('f-reminder-text').value,
+                "Queue-itUI或文字訊息": document.getElementById('f-queue-it-msg').value,
+                "Queue-it每分鐘放入": document.getElementById('f-queue-it-rate').value,
+                "通知IT時間": document.getElementById('f-notify-it-time').value
+            };
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+                body: JSON.stringify({ action: 'save_queue', data: [data] })
+            }).then(() => {
+                alert('儲存成功');
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = '儲存設定';
+                document.getElementById('queue-form').reset();
+                loadData();
+            }).catch(err => {
+                alert('儲存失敗');
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = '儲存設定';
+            });
+        });
+
+        function loadData() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">載入中...</td></tr>';
+            
+            fetch(SCRIPT_URL + '?action=get_queue')
+                .then(res => res.json())
+                .then(data => {
+                    tbody.innerHTML = '';
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">無資料</td></tr>';
+                        return;
+                    }
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row['售票時間'] || ''}</td>
+                            <td>${row['預排時間'] || ''}</td>
+                            <td>${row['活動名稱'] || ''}</td>
+                            <td>${row['節目代碼'] || ''}</td>
+                            <td>${row['場次代碼'] || ''}</td>
+                            <td>${row['排隊方式'] || ''}</td>
+                            <td>${row['預排網頁提醒文字'] || ''}</td>
+                            <td>${row['Queue-itUI或文字訊息'] || ''}</td>
+                            <td>${row['Queue-it每分鐘放入'] || ''}</td>
+                            <td>${row['通知IT時間'] || ''}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => {
+                    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: red;">載入失敗</td></tr>';
+                });
+        }
+
+        document.getElementById('btn-refresh').addEventListener('click', loadData);
+        window.addEventListener('load', loadData);
+    </script>
+</body>
+</html>
+

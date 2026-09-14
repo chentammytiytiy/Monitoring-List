@@ -16,6 +16,9 @@ function doGet(e) {
   if (e.parameter && e.parameter.action === 'get_users') {
     return handleGetUsers();
   }
+  if (e.parameter && e.parameter.action === 'get_queue') {
+    return handleGetQueue();
+  }
   if (e.parameter && e.parameter.action === 'save') {
     return handleSave(e.parameter.data || '');
   }
@@ -49,6 +52,8 @@ function doPost(e) {
       var records = payload.data;
       if (action === 'append') {
         return handleAppend(records);
+      } else if (action === 'save_queue') {
+        return handleSaveQueue(records);
       } else if (action === 'log_account') {
         return handleLogAccount(records);
       } else if (action === 'sync_users') {
@@ -421,4 +426,70 @@ function testAppend() {
   ];
   var result = handleAppend(newData);
   Logger.log('testAppend result: ' + result.getContent());
+}
+function handleGetQueue() {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet = ss.getSheetByName('排隊設定');
+    if (!sheet) return jsonResponse([]);
+    
+    var lastRow = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+    if (lastRow < 2 || lastCol < 1) return jsonResponse([]);
+    
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+    
+    var queues = data.map(function(row) {
+      var u = {};
+      headers.forEach(function(h, i) {
+        u[h] = row[i];
+      });
+      return u;
+    });
+    return jsonResponse(queues);
+  } catch(err) {
+    Logger.log('handleGetQueue error: ' + err.toString());
+    return jsonResponse({ error: err.toString() });
+  }
+}
+
+function handleSaveQueue(records) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet = ss.getSheetByName('排隊設定');
+    var isNew = false;
+    if (!sheet) {
+      sheet = ss.insertSheet('排隊設定');
+      isNew = true;
+    }
+    if (records.length === 0) return jsonResponse({ success: true, count: 0 });
+    
+    var headers = [];
+    if (!isNew && sheet.getLastRow() > 0) {
+      headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    } else {
+      records.forEach(function(r) {
+        Object.keys(r).forEach(function(k) {
+          if (headers.indexOf(k) === -1) headers.push(k);
+        });
+      });
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sheet.setFrozenRows(1);
+    }
+    
+    var rows = records.map(function(r) {
+      return headers.map(function(h) {
+        var v = r[h];
+        return (v !== undefined && v !== null) ? String(v) : '';
+      });
+    });
+    
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, headers.length).setValues(rows);
+    
+    return jsonResponse({ success: true, count: records.length });
+  } catch(err) {
+    Logger.log('handleSaveQueue error: ' + err.toString());
+    return jsonResponse({ error: err.toString() });
+  }
 }
