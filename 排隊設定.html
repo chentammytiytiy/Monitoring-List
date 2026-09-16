@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 
 <head>
@@ -780,6 +780,27 @@
                 <h1>排隊設定</h1>
                 <button type="button" class="btn-refresh" id="btn-refresh">重新整理</button>
             </div>
+            <div class="search-grid">
+                <div class="form-group">
+                    <label>售票時間區間</label>
+                    <div class="date-range-group">
+                        <input type="text" id="search-date-start" placeholder="yyyy/mm/dd" onfocus="this.type='date'" onblur="if(!this.value) this.type='text'">
+                        <span>至</span>
+                        <input type="text" id="search-date-end" placeholder="yyyy/mm/dd" onfocus="this.type='date'" onblur="if(!this.value) this.type='text'">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>排隊方式</label>
+                    <input type="text" id="search-queue-method" placeholder="請輸入關鍵字">
+                </div>
+                <div class="search-btn-container">
+                    <button type="button" class="btn-search" id="btn-search">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        查詢
+                    </button>
+                    <button type="button" class="btn-clear" id="btn-clear">清空</button>
+                </div>
+            </div>
             
             <div class="table-wrapper">
                 <table id="data-table">
@@ -920,6 +941,22 @@
             }
         }
 
+        
+        let isSearching = false;
+
+        document.getElementById('btn-search').addEventListener('click', () => {
+            isSearching = true;
+            renderTable();
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            document.getElementById('search-date-start').value = '';
+            document.getElementById('search-date-end').value = '';
+            document.getElementById('search-queue-method').value = '';
+            isSearching = false;
+            renderTable();
+        });
+
         function renderTable() {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
@@ -929,26 +966,78 @@
                 return;
             }
             
+            const startDateStr = document.getElementById('search-date-start').value;
+            const endDateStr = document.getElementById('search-date-end').value;
+            const qMethodQuery = document.getElementById('search-queue-method').value.trim().toLowerCase();
+            
+            const now = new Date();
+            let filteredEvents = [];
+
             currentMainEvents.forEach((event, idx) => {
-                const saleTime = formatDate(event['開賣日期'], event['時間']);
+                const saleTimeStr = formatDate(event['開賣日期'], event['時間']);
+                const saleDateObj = new Date(saleTimeStr);
+                
                 const eventName = event['活動名稱'] || '';
                 const programCode = event['A節目代碼/E活動分類'] || '';
                 
                 const queueItem = currentQueueData.find(q => q['_id'] === event['_id'] || (q['活動名稱'] === eventName && q['節目代碼'] === programCode)) || {};
                 
+                const qMethod = queueItem['排隊方式'] || '';
+
+                if (!isSearching) {
+                    if (saleDateObj < now && saleTimeStr !== '') {
+                        return;
+                    }
+                } else {
+                    if (startDateStr) {
+                        const sDate = new Date(startDateStr);
+                        sDate.setHours(0, 0, 0, 0);
+                        if (saleDateObj < sDate) return;
+                    }
+                    if (endDateStr) {
+                        const eDate = new Date(endDateStr);
+                        eDate.setHours(23, 59, 59, 999);
+                        if (saleDateObj > eDate) return;
+                    }
+                    if (qMethodQuery) {
+                        if (!qMethod.toLowerCase().includes(qMethodQuery)) return;
+                    }
+                }
+
+                filteredEvents.push({
+                    event: event,
+                    queueItem: queueItem,
+                    saleTimeStr: saleTimeStr,
+                    saleDateObj: saleDateObj,
+                    idx: idx
+                });
+            });
+
+            filteredEvents.sort((a, b) => {
+                if (isNaN(a.saleDateObj.getTime())) return 1;
+                if (isNaN(b.saleDateObj.getTime())) return -1;
+                return a.saleDateObj - b.saleDateObj;
+            });
+
+            if (filteredEvents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">查無相符資料</td></tr>';
+                return;
+            }
+
+            filteredEvents.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><button class="btn-edit" onclick="openEditModal(${idx})">編輯</button></td>
-                    <td>${saleTime}</td>
-                    <td>${queueItem['預排時間'] || ''}</td>
-                    <td class="col-name">${eventName}</td>
-                    <td>${programCode}</td>
-                    <td>${queueItem['場次代碼'] || ''}</td>
-                    <td>${queueItem['排隊方式'] || ''}</td>
-                    <td>${queueItem['預排網頁提醒文字'] || ''}</td>
-                    <td>${queueItem['Queue-itUI或文字訊息'] || ''}</td>
-                    <td>${queueItem['Queue-it每分鐘放入'] || ''}</td>
-                    <td>${queueItem['通知IT時間'] || ''}</td>
+                    <td><button class="btn-edit" onclick="openEditModal(${item.idx})">編輯</button></td>
+                    <td>${item.saleTimeStr}</td>
+                    <td>${item.queueItem['預排時間'] || ''}</td>
+                    <td class="col-name">${item.event['活動名稱'] || ''}</td>
+                    <td>${item.event['A節目代碼/E活動分類'] || ''}</td>
+                    <td>${item.queueItem['場次代碼'] || ''}</td>
+                    <td>${item.queueItem['排隊方式'] || ''}</td>
+                    <td>${item.queueItem['預排網頁提醒文字'] || ''}</td>
+                    <td>${item.queueItem['Queue-itUI或文字訊息'] || ''}</td>
+                    <td>${item.queueItem['Queue-it每分鐘放入'] || ''}</td>
+                    <td>${item.queueItem['通知IT時間'] || ''}</td>
                 `;
                 tbody.appendChild(tr);
             });
