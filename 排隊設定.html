@@ -799,6 +799,7 @@
                         查詢
                     </button>
                     <button type="button" class="btn-clear" id="btn-clear">清空</button>
+                    <button type="button" class="btn-export" id="btn-export" style="background:#10b981; color:#fff; border:none; padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer; font-weight:500; font-size:0.95rem; margin-left: 0.5rem;">匯出Excel</button>
                 </div>
             </div>
             
@@ -1018,6 +1019,7 @@
                 if (isNaN(b.saleDateObj.getTime())) return -1;
                 return a.saleDateObj - b.saleDateObj;
             });
+            window.lastRenderedEvents = filteredEvents;
 
             if (filteredEvents.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">查無相符資料</td></tr>';
@@ -1042,6 +1044,74 @@
                 tbody.appendChild(tr);
             });
         }
+
+        
+        document.getElementById('btn-export').addEventListener('click', function() {
+            if (!window.lastRenderedEvents || window.lastRenderedEvents.length === 0) {
+                alert('目前沒有資料可以匯出');
+                return;
+            }
+
+            let dataRows = '';
+            window.lastRenderedEvents.forEach(item => {
+                dataRows += `
+                    <tr>
+                        <td style="border: .5pt solid windowtext;">${item.saleTimeStr || ''}</td>
+                        <td style="border: .5pt solid windowtext;">${item.queueItem['預排時間'] || ''}</td>
+                        <td style="border: .5pt solid windowtext;">${item.event['活動名稱'] || ''}</td>
+                        <td style="border: .5pt solid windowtext;">${item.event['A節目代碼/E活動分類'] || ''}</td>
+                        <td style="border: .5pt solid windowtext;">${item.queueItem['場次代碼'] || ''}</td>
+                        <td style="border: .5pt solid windowtext;">${item.queueItem['排隊方式'] || ''}</td>
+                        <td style="border: .5pt solid windowtext;">${item.queueItem['預排網頁提醒文字'] || ''}</td>
+                        <td style="border: .5pt solid windowtext;">${item.queueItem['Queue-itUI或文字訊息'] || ''}</td>
+                        <td style="border: .5pt solid windowtext;">${item.queueItem['Queue-it每分鐘放入'] || ''}</td>
+                        <td style="border: .5pt solid windowtext;">${item.queueItem['通知IT時間'] || ''}</td>
+                    </tr>
+                `;
+            });
+
+            let tableHtml = `
+                <table style="border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">售票時間</th>
+                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">預排時間</th>
+                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">活動名稱</th>
+                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">節目代碼</th>
+                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">場次代碼</th>
+                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">排隊方式</th>
+                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">預排網頁提醒文字</th>
+                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">Queue-itUI或文字訊息</th>
+                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">Queue-it每分鐘放入</th>
+                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">通知IT時間</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${dataRows}
+                    </tbody>
+                </table>
+            `;
+
+            const excelFile = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>排隊設定</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>${tableHtml}</body></html>`;
+
+            const blob = new Blob([excelFile], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const hh = String(today.getHours()).padStart(2, '0');
+            const min = String(today.getMinutes()).padStart(2, '0');
+
+            a.href = url;
+            a.download = `排隊設定_${yyyy}${mm}${dd}_${hh}${min}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        });
 
         window.openEditModal = function(idx) {
             const event = currentMainEvents[idx];
