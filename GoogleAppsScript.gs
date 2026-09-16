@@ -12,6 +12,21 @@ var SPREADSHEET_ID = '1suou6jcWJTuUh_mbKp9c9nlpoNtQSyqxxxvxgHgtpX8';
  *   - 無參數 → 讀取資料
  *   - ?action=save&data=... → 寫入（小資料向下相容）
  */
+
+// ============================================================
+// Helper to get the main sheet (ignoring config sheets)
+// ============================================================
+function getMainSheet(ss) {
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var name = sheets[i].getName();
+    if (name !== '排隊設定' && name !== '帳號') {
+      return sheets[i];
+    }
+  }
+  return sheets[0];
+}
+
 function doGet(e) {
   if (e.parameter && e.parameter.action === 'get_users') {
     return handleGetUsers();
@@ -92,7 +107,7 @@ function handleLogAccount(records) {
     var sheet = ss.getSheetByName(sheetName);
     
     if (!sheet) {
-      sheet = ss.insertSheet(sheetName);
+      sheet = ss.insertSheet(sheetName, ss.getSheets().length);
       sheet.appendRow(['建立時間', '動作', '操作者', '目標帳號', '目標姓名', '目標角色', '權限']);
       sheet.setFrozenRows(1);
     }
@@ -178,7 +193,7 @@ function handleSaveArray(records) {
     }
 
     var ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-    var sheet = ss.getSheets()[0];
+    var sheet = getMainSheet(ss);
     sheet.clearContents();
 
     if (records.length === 0) {
@@ -232,7 +247,7 @@ function handleAppend(newRecords) {
     }
 
     var ss      = SpreadsheetApp.openById(SPREADSHEET_ID);
-    var sheet   = ss.getSheets()[0];
+    var sheet = getMainSheet(ss);
     var lastRow = sheet.getLastRow();
     var lastCol = sheet.getLastColumn();
 
@@ -312,7 +327,7 @@ function handleRead() {
  */
 function readTableAsArray() {
   var ss      = SpreadsheetApp.openById(SPREADSHEET_ID);
-  var sheet   = ss.getSheets()[0];
+  var sheet = getMainSheet(ss);
   var lastRow = sheet.getLastRow();
   var lastCol = sheet.getLastColumn();
 
@@ -460,7 +475,7 @@ function handleSaveQueue(records) {
     var sheet = ss.getSheetByName('排隊設定');
     var isNew = false;
     if (!sheet) {
-      sheet = ss.insertSheet('排隊設定');
+      sheet = ss.insertSheet('排隊設定', ss.getSheets().length);
       isNew = true;
     }
     if (records.length === 0) return jsonResponse({ success: true, count: 0 });
