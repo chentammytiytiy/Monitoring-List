@@ -814,7 +814,7 @@
                             <th>節目代碼</th>
                             <th>場次代碼</th>
                             <th>排隊方式</th>
-                            <th>預排網頁提醒文字</th>
+                            <th>預排開賣提醒文字</th>
                             <th>Queue-itUI或文字訊息</th>
                             <th>Queue-it每分鐘放入</th>
                             <th>通知IT時間</th>
@@ -861,17 +861,17 @@
                         <label>排隊方式</label>
                         <input type="text" id="f-queue-method">
                     </div>
-                    <div class="form-group">
-                        <label>預排網頁提醒文字</label>
-                        <input type="text" id="f-reminder-text">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>預排開賣提醒文字</label>
+                        <textarea id="f-reminder-text" rows="3"></textarea>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="grid-column: 1 / -1;">
                         <label>Queue-itUI或文字訊息</label>
-                        <input type="text" id="f-queue-it-msg">
+                        <textarea id="f-queue-it-msg" rows="3"></textarea>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="grid-column: 1 / -1;">
                         <label>Queue-it每分鐘放入</label>
-                        <input type="text" id="f-queue-it-rate">
+                        <textarea id="f-queue-it-rate" rows="3"></textarea>
                     </div>
                     <div class="form-group">
                         <label>通知IT時間</label>
@@ -1053,19 +1053,24 @@
             }
 
             let dataRows = '';
+            const esc = (str) => {
+                if (!str) return '';
+                return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br style="mso-data-placement:same-cell;">');
+            };
+
             window.lastRenderedEvents.forEach(item => {
                 dataRows += `
                     <tr>
-                        <td style="border: .5pt solid windowtext;">${item.saleTimeStr || ''}</td>
-                        <td style="border: .5pt solid windowtext;">${item.queueItem['預排時間'] || ''}</td>
-                        <td style="border: .5pt solid windowtext;">${item.event['活動名稱'] || ''}</td>
-                        <td style="border: .5pt solid windowtext;">${item.event['A節目代碼/E活動分類'] || ''}</td>
-                        <td style="border: .5pt solid windowtext;">${item.queueItem['場次代碼'] || ''}</td>
-                        <td style="border: .5pt solid windowtext;">${item.queueItem['排隊方式'] || ''}</td>
-                        <td style="border: .5pt solid windowtext;">${item.queueItem['預排網頁提醒文字'] || ''}</td>
-                        <td style="border: .5pt solid windowtext;">${item.queueItem['Queue-itUI或文字訊息'] || ''}</td>
-                        <td style="border: .5pt solid windowtext;">${item.queueItem['Queue-it每分鐘放入'] || ''}</td>
-                        <td style="border: .5pt solid windowtext;">${item.queueItem['通知IT時間'] || ''}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(item.saleTimeStr)}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(item.queueItem['預排時間'])}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(item.event['活動名稱'])}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(item.event['A節目代碼/E活動分類'])}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(item.queueItem['場次代碼'])}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(item.queueItem['排隊方式'])}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(item.queueItem['預排網頁提醒文字'])}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(item.queueItem['Queue-itUI或文字訊息'])}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(item.queueItem['Queue-it每分鐘放入'])}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(item.queueItem['通知IT時間'])}</td>
                     </tr>
                 `;
             });
@@ -1074,16 +1079,16 @@
                 <table style="border-collapse: collapse;">
                     <thead>
                         <tr>
-                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">售票時間</th>
-                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">預排時間</th>
-                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">活動名稱</th>
-                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">節目代碼</th>
-                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">場次代碼</th>
-                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">排隊方式</th>
-                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">預排網頁提醒文字</th>
-                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">Queue-itUI或文字訊息</th>
-                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">Queue-it每分鐘放入</th>
-                            <th style="background-color: #FDE9D9; border: .5pt solid windowtext; font-weight: bold;">通知IT時間</th>
+                            <th style="background-color: #FFFF00; border: .5pt solid windowtext; font-weight: bold;">售票時間</th>
+                            <th style="background-color: #FFFF00; border: .5pt solid windowtext; font-weight: bold;">預排時間</th>
+                            <th style="background-color: #FFFF00; border: .5pt solid windowtext; font-weight: bold;">活動名稱</th>
+                            <th style="background-color: #FFFF00; border: .5pt solid windowtext; font-weight: bold;">節目代碼</th>
+                            <th style="background-color: #FFFF00; border: .5pt solid windowtext; font-weight: bold;">場次代碼</th>
+                            <th style="background-color: #FFFF00; border: .5pt solid windowtext; font-weight: bold;">排隊方式</th>
+                            <th style="background-color: #FFFF00; border: .5pt solid windowtext; font-weight: bold;">預排開賣提醒文字</th>
+                            <th style="background-color: #FFFF00; border: .5pt solid windowtext; font-weight: bold;">Queue-itUI或文字訊息</th>
+                            <th style="background-color: #FFFF00; border: .5pt solid windowtext; font-weight: bold;">Queue-it每分鐘放入</th>
+                            <th style="background-color: #FFFF00; border: .5pt solid windowtext; font-weight: bold;">通知IT時間</th>
                         </tr>
                     </thead>
                     <tbody>
