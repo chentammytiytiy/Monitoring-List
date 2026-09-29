@@ -951,6 +951,36 @@
                     return mechanism.includes('流管畫面') || mechanism.includes('一般排隊');
                 });
                 
+                currentMainEvents.forEach(event => {
+                    const eventName = event['活動名稱'] || '';
+                    const programCode = event['A節目代碼/E活動分類'] || '';
+                    const queueItem = currentQueueData.find(q => q['_id'] === event['_id'] || (q['活動名稱'] === eventName && q['節目代碼'] === programCode));
+                    
+                    if (queueItem) {
+                        let advanceMins = 0;
+                        const mechanism = event['排隊機制'] || '';
+                        const match = mechanism.match(/預排(\d+)分/);
+                        if (match) {
+                            advanceMins = parseInt(match[1], 10);
+                        }
+                        
+                        let qMethod = queueItem['排隊方式'] || '';
+                        if (!qMethod) {
+                            if (mechanism.includes('流管畫面')) qMethod = '進A排隊(流管版型)';
+                            else if (mechanism.includes('一般排隊')) qMethod = '預排+一般排隊(機台第一分鐘流管設1)';
+                        }
+
+                        if (qMethod === '預排+一般排隊(機台第一分鐘流管設1)' && advanceMins > 0) {
+                            const saleTimeStr = formatDate(event['開賣日期'], event['時間']);
+                            const sTime = new Date(saleTimeStr);
+                            if (!isNaN(sTime.getTime())) {
+                                const pTime = new Date(sTime.getTime() - advanceMins * 60000);
+                                queueItem['預排時間'] = String(pTime.getHours()).padStart(2, '0') + ':' + String(pTime.getMinutes()).padStart(2, '0');
+                            }
+                        }
+                    }
+                });
+
                 renderTable();
             } catch (err) {
                 console.error(err);
@@ -1169,7 +1199,7 @@
             }
 
             let preQueueTimeStr = formatTimeOnly(queueItem['預排時間']) || '';
-            if (!preQueueTimeStr && defaultQueueMethod === '預排+一般排隊(機台第一分鐘流管設1)' && advanceMins > 0) {
+            if (defaultQueueMethod === '預排+一般排隊(機台第一分鐘流管設1)' && advanceMins > 0) {
                 const sTime = new Date(saleTime);
                 if (!isNaN(sTime.getTime())) {
                     const pTime = new Date(sTime.getTime() - advanceMins * 60000);
