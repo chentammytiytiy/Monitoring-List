@@ -1137,10 +1137,29 @@
             
             document.getElementById('f-pre-queue-time').value = queueItem['預排時間'] || '';
             document.getElementById('f-session-code').value = queueItem['場次代碼'] || '';
-            document.getElementById('f-queue-method').value = queueItem['排隊方式'] || '';
+            let defaultQueueMethod = queueItem['排隊方式'] || '';
+            let isNewMethod = false;
+            if (!defaultQueueMethod) {
+                const mechanism = event['排隊機制'] || '';
+                if (mechanism.includes('流管畫面')) {
+                    defaultQueueMethod = '進A排隊(流管版型)';
+                    isNewMethod = true;
+                } else if (mechanism.includes('一般排隊')) {
+                    defaultQueueMethod = '預排+一般排隊(機台第一分鐘流管設1)';
+                    isNewMethod = true;
+                }
+            }
+            
             document.getElementById('f-reminder-text').value = queueItem['預排網頁提醒文字'] || '';
             document.getElementById('f-queue-it-msg').value = queueItem['Queue-itUI或文字訊息'] || '';
             document.getElementById('f-queue-it-rate').value = queueItem['Queue-it每分鐘放入'] || '';
+
+            const qmSelect = document.getElementById('f-queue-method');
+            qmSelect.value = defaultQueueMethod;
+            
+            if (isNewMethod) {
+                qmSelect.dispatchEvent(new Event('change'));
+            }
             
             // Format datetime-local for output
             let notifyTime = queueItem['通知IT時間'] || '';
