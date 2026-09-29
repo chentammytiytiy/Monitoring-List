@@ -1208,6 +1208,14 @@
             });
         });
 
+        document.getElementById('f-queue-method').addEventListener('change', function() {
+            if (this.value === '進A排隊(流管版型)') {
+                document.getElementById('f-reminder-text').value = 'X';
+                document.getElementById('f-queue-it-msg').value = '為確保進站使用者可順利購票，本站進行流量控管\n請勿重新整理頁面或關閉瀏覽器';
+                document.getElementById('f-queue-it-rate').value = '1X:00→2000/人\n1X:01→2000/人\n1X:02→2000/人';
+            }
+        });
+
         document.getElementById('btn-refresh').addEventListener('click', loadData);
         window.addEventListener('load', loadData);
     </script>
