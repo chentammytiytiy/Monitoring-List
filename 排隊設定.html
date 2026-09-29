@@ -920,6 +920,19 @@
             }
         }
 
+        function formatTimeOnly(timeStr) {
+            if (!timeStr) return '';
+            if (timeStr.includes('T')) {
+                const d = new Date(timeStr);
+                if (!isNaN(d.getTime())) {
+                    const HH = String(d.getHours()).padStart(2, '0');
+                    const MM = String(d.getMinutes()).padStart(2, '0');
+                    return `${HH}:${MM}`;
+                }
+            }
+            return timeStr;
+        }
+
         async function loadData() {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">載入中...</td></tr>';
@@ -1034,7 +1047,7 @@
                 tr.innerHTML = `
                     <td><button class="btn-edit" onclick="openEditModal(${item.idx})">編輯</button></td>
                     <td>${item.saleTimeStr}</td>
-                    <td>${item.queueItem['預排時間'] || ''}</td>
+                    <td>${formatTimeOnly(item.queueItem['預排時間'])}</td>
                     <td class="col-name">${item.event['活動名稱'] || ''}</td>
                     <td>${item.event['A節目代碼/E活動分類'] || ''}</td>
                     <td>${item.queueItem['場次代碼'] || ''}</td>
@@ -1065,7 +1078,7 @@
                 dataRows += `
                     <tr>
                         <td style="border: .5pt solid windowtext;">${esc(item.saleTimeStr)}</td>
-                        <td style="border: .5pt solid windowtext;">${esc(item.queueItem['預排時間'])}</td>
+                        <td style="border: .5pt solid windowtext;">${esc(formatTimeOnly(item.queueItem['預排時間']))}</td>
                         <td style="border: .5pt solid windowtext;">${esc(item.event['活動名稱'])}</td>
                         <td style="border: .5pt solid windowtext;">${esc(item.event['A節目代碼/E活動分類'])}</td>
                         <td style="border: .5pt solid windowtext;">${esc(item.queueItem['場次代碼'])}</td>
@@ -1155,7 +1168,7 @@
                 }
             }
 
-            let preQueueTimeStr = queueItem['預排時間'] || '';
+            let preQueueTimeStr = formatTimeOnly(queueItem['預排時間']) || '';
             if (!preQueueTimeStr && defaultQueueMethod === '預排+一般排隊(機台第一分鐘流管設1)' && advanceMins > 0) {
                 const sTime = new Date(saleTime);
                 if (!isNaN(sTime.getTime())) {
