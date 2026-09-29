@@ -898,6 +898,8 @@ function handleGetQueue() {
     Logger.log('handleGetQueue error: ' + err.toString());
     return jsonResponse({ error: err.toString() });
   }
+}
+
 function handleArchive() {
   try {
     var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
