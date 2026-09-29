@@ -1135,8 +1135,6 @@
             document.getElementById('f-event-name').value = eventName;
             document.getElementById('f-program-code').value = programCode;
             
-            document.getElementById('f-pre-queue-time').value = queueItem['預排時間'] || '';
-            document.getElementById('f-session-code').value = queueItem['場次代碼'] || '';
             let defaultQueueMethod = queueItem['排隊方式'] || '';
             let isNewMethod = false;
             if (!defaultQueueMethod) {
@@ -1149,6 +1147,21 @@
                     isNewMethod = true;
                 }
             }
+
+            let preQueueTimeStr = queueItem['預排時間'] || '';
+            if (!preQueueTimeStr && defaultQueueMethod === '預排+一般排隊(機台第一分鐘流管設1)' && event['預排提前時間']) {
+                const advanceMins = parseInt(event['預排提前時間'], 10);
+                if (!isNaN(advanceMins)) {
+                    const sTime = new Date(saleTime);
+                    if (!isNaN(sTime.getTime())) {
+                        const pTime = new Date(sTime.getTime() - advanceMins * 60000);
+                        preQueueTimeStr = String(pTime.getHours()).padStart(2, '0') + ':' + String(pTime.getMinutes()).padStart(2, '0');
+                    }
+                }
+            }
+
+            document.getElementById('f-pre-queue-time').value = preQueueTimeStr;
+            document.getElementById('f-session-code').value = queueItem['場次代碼'] || '';
             
             document.getElementById('f-reminder-text').value = queueItem['預排網頁提醒文字'] || '';
             document.getElementById('f-queue-it-msg').value = queueItem['Queue-itUI或文字訊息'] || '';
