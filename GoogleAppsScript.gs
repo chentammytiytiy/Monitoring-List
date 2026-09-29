@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // Google Apps Script - 監控申請表單後端 (v7 - 表格格式版)
 // GET  → 讀取資料（回傳 JSON 陣列）
 // POST → 寫入 / 追加資料（以表格欄列方式儲存）
@@ -73,6 +73,8 @@ function doPost(e) {
         return handleLogAccount(records);
       } else if (action === 'sync_users') {
         return handleSyncUsers(records);
+      } else if (action === 'archive') {
+        return handleArchive();
       } else {
         return handleSaveArray(records);
       }
@@ -896,5 +898,61 @@ function handleGetQueue() {
     Logger.log('handleGetQueue error: ' + err.toString());
     return jsonResponse({ error: err.toString() });
   }
+function handleArchive() {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var mainSheet = getMainSheet(ss);
+    var historySheet = ss.getSheetByName('歷史資料區');
+    if (!historySheet) {
+      historySheet = ss.insertSheet('歷史資料區');
+    }
+    
+    var lastRow = mainSheet.getLastRow();
+    var lastCol = mainSheet.getLastColumn();
+    if (lastRow < 2) return jsonResponse({ success: true, count: 0, message: '無資料可搬移' });
+    
+    var headers = mainSheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var data = mainSheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+    
+    var dateIdx = headers.indexOf('開賣日期');
+    if (dateIdx === -1) return jsonResponse({ error: '找不到開賣日期欄位' });
+    
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    var activeData = [];
+    var historyData = [];
+    
+    for (var i = 0; i < data.length; i++) {
+      var row = data[i];
+      var dateStr = row[dateIdx];
+      var dateObj = new Date(dateStr);
+      
+      if (dateStr && !isNaN(dateObj.getTime()) && dateObj < today) {
+        historyData.push(row);
+      } else {
+        activeData.push(row);
+      }
+    }
+    
+    if (historyData.length > 0) {
+      if (historySheet.getLastRow() === 0) {
+        historySheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      }
+      historySheet.getRange(historySheet.getLastRow() + 1, 1, historyData.length, headers.length).setValues(historyData);
+      
+      mainSheet.clearContents();
+      mainSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      if (activeData.length > 0) {
+        mainSheet.getRange(2, 1, activeData.length, headers.length).setValues(activeData);
+      }
+      
+      return jsonResponse({ success: true, count: historyData.length, message: '已將 ' + historyData.length + ' 筆資料搬至歷史資料區' });
+    }
+    
+    return jsonResponse({ success: true, count: 0, message: '沒有系統日以前的資料需要搬移' });
+  } catch (err) {
+    Logger.log('handleArchive error: ' + err.toString());
+    return jsonResponse({ error: err.toString() });
+  }
 }
-

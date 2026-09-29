@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 
 <head>
@@ -849,6 +849,14 @@
                     </svg>
                     手動更新
                 </button>
+                <button type="button" class="btn-refresh" id="btn-archive" style="background: linear-gradient(135deg, #f59e0b, #d97706); margin-left: 10px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 8v13H3V8"></path>
+                        <rect x="1" y="3" width="22" height="5"></rect>
+                        <line x1="10" y1="12" x2="14" y2="12"></line>
+                    </svg>
+                    封存歷史資料
+                </button>
             </div>
         </div>
 
@@ -1182,6 +1190,36 @@
             } catch (e) {
                 console.error("無法讀取資料庫資料:", e);
                 alert('更新失敗：' + e.message);
+            }
+        });
+
+        document.getElementById('btn-archive').addEventListener('click', async function () {
+            if (!confirm('確定要將系統日以前的資料搬移到「歷史資料區」嗎？此操作將會大幅加快讀取速度，但歷史資料將從本清單隱藏。')) return;
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '處理中...';
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'archive', data: null }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                const text = await res.text();
+                try {
+                    const data = JSON.parse(text);
+                    if (data.error) throw new Error(data.error);
+                    alert(data.message || '封存完成');
+                } catch (e) {
+                    alert('封存完成 (已傳送)');
+                }
+                sessionStorage.removeItem('monitoring_data_cache');
+                sessionStorage.removeItem('monitoring_data_time');
+                document.getElementById('btn-refresh').click();
+            } catch (err) {
+                alert('網路錯誤：' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"></path><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg> 封存歷史資料';
             }
         });
 
