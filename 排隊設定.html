@@ -1111,7 +1111,7 @@
                         <td style="border: .5pt solid windowtext;">${esc(formatTimeOnly(item.queueItem['預排時間']))}</td>
                         <td style="border: .5pt solid windowtext;">${esc(item.event['活動名稱'])}</td>
                         <td style="border: .5pt solid windowtext;">${esc(item.event['A節目代碼/E活動分類'])}</td>
-                        <td style="border: .5pt solid windowtext;">${esc(item.queueItem['場次代碼'])}</td>
+                        <td style="border: .5pt solid windowtext;">${esc((item.queueItem['場次代碼'] || '').replace(/[、,，]/g, '\n'))}</td>
                         <td style="border: .5pt solid windowtext;">${esc(item.queueItem['排隊方式'])}</td>
                         <td style="border: .5pt solid windowtext;">${esc(item.queueItem['預排網頁提醒文字'])}</td>
                         <td style="border: .5pt solid windowtext;">${esc(item.queueItem['Queue-itUI或文字訊息'])}</td>
