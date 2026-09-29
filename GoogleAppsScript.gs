@@ -488,6 +488,18 @@ function handleSaveQueue(records) {
     var headers = [];
     if (!isNew && sheet.getLastRow() > 0) {
       headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      var newHeaders = [];
+      records.forEach(function(r) {
+        Object.keys(r).forEach(function(k) {
+          if (headers.indexOf(k) === -1 && newHeaders.indexOf(k) === -1) {
+            newHeaders.push(k);
+          }
+        });
+      });
+      if (newHeaders.length > 0) {
+        headers = headers.concat(newHeaders);
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      }
     } else {
       records.forEach(function(r) {
         Object.keys(r).forEach(function(k) {
@@ -500,26 +512,56 @@ function handleSaveQueue(records) {
     
     var idIndex = headers.indexOf('_id');
     var existingIds = [];
-    if (!isNew && sheet.getLastRow() > 1 && idIndex !== -1) {
-      existingIds = sheet.getRange(2, idIndex + 1, sheet.getLastRow() - 1, 1).getValues().map(function(row) {
-        return row[0] ? row[0].toString() : '';
-      });
+    var allData = [];
+    if (!isNew && sheet.getLastRow() > 1) {
+      allData = sheet.getRange(2, 1, sheet.getLastRow() - 1, headers.length).getValues();
+      if (idIndex !== -1) {
+        existingIds = allData.map(function(row) {
+          return row[idIndex] ? row[idIndex].toString() : '';
+        });
+      }
     }
 
     records.forEach(function(r) {
+      var targetId = r._id ? r._id.toString() : '';
+      var evtName = r['活動名稱'] ? r['活動名稱'].toString() : '';
+      var prgCode = r['節目代碼'] ? r['節目代碼'].toString() : '';
+      
+      var rowIdx = -1;
+      
+      // Match by _id first
+      if (targetId && existingIds.indexOf(targetId) !== -1) {
+        rowIdx = existingIds.indexOf(targetId);
+      } else {
+        // Fallback match by Name + Code (from bottom up)
+        var nameIdx = headers.indexOf('活動名稱');
+        var codeIdx = headers.indexOf('節目代碼');
+        if (nameIdx !== -1 && codeIdx !== -1 && allData.length > 0) {
+          for (var i = allData.length - 1; i >= 0; i--) {
+            if (allData[i][nameIdx] === evtName && allData[i][codeIdx] === prgCode) {
+              rowIdx = i;
+              break;
+            }
+          }
+        }
+      }
+      
       var rowData = headers.map(function(h) {
         var v = r[h];
         return (v !== undefined && v !== null) ? String(v) : '';
       });
       
-      var targetId = r._id ? r._id.toString() : '';
-      var rowIdx = targetId ? existingIds.indexOf(targetId) : -1;
-      
       if (rowIdx !== -1) {
+        // Overwrite existing
         sheet.getRange(rowIdx + 2, 1, 1, headers.length).setValues([rowData]);
+        // Update allData in memory in case of duplicates
+        allData[rowIdx] = rowData;
+        if (targetId && idIndex !== -1) existingIds[rowIdx] = targetId;
       } else {
+        // Append
         sheet.appendRow(rowData);
-        if (targetId) existingIds.push(targetId);
+        allData.push(rowData);
+        if (targetId && idIndex !== -1) existingIds.push(targetId);
       }
     });
     
