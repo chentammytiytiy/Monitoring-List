@@ -828,6 +828,13 @@
                 <input type="text" id="search-owner" placeholder="輸入關鍵字...">
             </div>
 
+            <div class="form-group" style="display: flex; align-items: center; padding-top: 25px;">
+                <label style="cursor: pointer; display: flex; align-items: center; font-weight: normal; margin-bottom: 0;">
+                    <input type="checkbox" id="search-include-history" style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 0;">
+                    包含歷史資料
+                </label>
+            </div>
+
             <div class="search-btn-container">
                 <button type="button" class="btn-clear" id="btn-clear">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -1038,6 +1045,7 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuMgACVmHzANXHzMzMXrbqX8bF6EffjJdnFOcSuP80R4FUW-iirDa6192rSLjO29Nrjg/exec';
         let allHistoricalRecords = [];
+        let historyRecordsCache = null;
         let currentFilteredRecords = []; // Keep track of the currently displayed records for Excel export
         let currentPage = 1;
         const itemsPerPage = 50;
@@ -1181,6 +1189,7 @@
             // clear cache
             sessionStorage.removeItem('monitoring_data_cache');
             sessionStorage.removeItem('monitoring_data_time');
+            historyRecordsCache = null;
             
             document.getElementById('results-tbody').innerHTML = '<tr><td colspan="24" class="empty-state">資料更新中，請稍候...</td></tr>';
             try {
@@ -1223,19 +1232,35 @@
             }
         });
 
-        document.getElementById('btn-search').addEventListener('click', function () {
+        document.getElementById('btn-search').addEventListener('click', async function () {
             const sDateStart = document.getElementById('search-date-start').value.trim();
             const sDateEnd = document.getElementById('search-date-end').value.trim();
             const sCodeOrName = document.getElementById('search-code').value.trim().toLowerCase();
             const sSystem = document.getElementById('search-system').value;
             const sOwner = document.getElementById('search-owner').value.trim().toLowerCase();
+            const includeHistory = document.getElementById('search-include-history').checked;
+
+            if (includeHistory && historyRecordsCache === null) {
+                const btn = document.getElementById('btn-search');
+                const origText = btn.innerHTML;
+                btn.innerHTML = '載入歷史...';
+                btn.disabled = true;
+                try {
+                    const res = await fetch(SCRIPT_URL + '?action=get_history');
+                    historyRecordsCache = await res.json();
+                } catch(e) {
+                    console.error("Failed to load history:", e);
+                    historyRecordsCache = [];
+                    alert('無法載入歷史資料');
+                }
+                btn.innerHTML = origText;
+                btn.disabled = false;
+            }
 
             // Convert boundaries to Comparable Date objects if they exist
             let dStart = null, dEnd = null;
             if (sDateStart) dStart = new Date(sDateStart);
             if (sDateEnd) {
-                // To include the entire end day, we could technically append 23:59:59 but 
-                // since the record saleDate doesn't usually have a time component, simple Date comparison is fine.
                 dEnd = new Date(sDateEnd);
             }
 
@@ -1243,7 +1268,9 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const filtered = allHistoricalRecords.filter(record => {
+            const baseRecords = includeHistory ? allHistoricalRecords.concat(historyRecordsCache || []) : allHistoricalRecords;
+
+            const filtered = baseRecords.filter(record => {
                 let match = true;
                 
                 const recDateStr = record['開賣日期'];
@@ -1258,7 +1285,7 @@
                 }
 
                 // Default filter: if no conditions, hide records with sale date before today
-                if (!hasConditions) {
+                if (!hasConditions && !includeHistory) {
                     if (!isValidDate) {
                         // If no valid sale date, show it so the user can see and fix the formatting.
                         match = true; 

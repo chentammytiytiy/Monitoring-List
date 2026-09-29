@@ -34,6 +34,9 @@ function doGet(e) {
   if (e.parameter && e.parameter.action === 'get_queue') {
     return handleGetQueue();
   }
+  if (e.parameter && e.parameter.action === 'get_history') {
+    return handleGetHistory();
+  }
   if (e.parameter && e.parameter.action === 'save') {
     return handleSave(e.parameter.data || '');
   }
@@ -956,5 +959,37 @@ function handleArchive() {
   } catch (err) {
     Logger.log('handleArchive error: ' + err.toString());
     return jsonResponse({ error: err.toString() });
+  }
+}
+
+function handleGetHistory() {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet = ss.getSheetByName('歷史資料區');
+    if (!sheet) return jsonResponse([]);
+    
+    var lastRow = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+    if (lastRow < 2 || lastCol < 1) return jsonResponse([]);
+    
+    var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+    
+    var records = data
+      .filter(function(row) {
+        return row.some(function(cell) { return cell !== '' && cell !== null; });
+      })
+      .map(function(row) {
+        var obj = {};
+        headers.forEach(function(h, i) {
+          obj[h] = (row[i] !== undefined && row[i] !== null) ? row[i].toString() : '';
+        });
+        return obj;
+      });
+      
+    return jsonResponse(records);
+  } catch(err) {
+    Logger.log('handleGetHistory error: ' + err.toString());
+    return jsonResponse([]);
   }
 }
