@@ -1232,6 +1232,10 @@
                 document.getElementById('f-reminder-text').value = 'X';
                 document.getElementById('f-queue-it-msg').value = '為確保進站使用者可順利購票，本站進行流量控管\n請勿重新整理頁面或關閉瀏覽器';
                 document.getElementById('f-queue-it-rate').value = '1X:00→2000/人\n1X:01→2000/人\n1X:02→2000/人';
+            } else if (this.value === '預排+一般排隊(機台第一分鐘流管設1)') {
+                document.getElementById('f-reminder-text').value = '活動 開 始 銷 售 時， 系 統 會 隨 機 產 生 排 隊 順 序， 並 非 依 進 入 等 候室 的 先 後 順 序 分 配。 請 依 排 隊 順 序 耐 心 等 候 進 入 購 票 頁 面。';
+                document.getElementById('f-queue-it-msg').value = '(1). 顯示文字：因線上人數眾多，已將您依序安排於等候區。請勿離開、重整畫面或另開分頁，以免喪失優先等待權益。\n(2). 排隊的畫面顯示：等候時間＋進度條';
+                document.getElementById('f-queue-it-rate').value = '每分鐘2000';
             }
         });
 
