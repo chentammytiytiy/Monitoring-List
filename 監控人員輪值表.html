@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 
 <head>
@@ -664,6 +664,13 @@
                     </select>
                 </div>
 
+                <div class="form-group" style="display: flex; align-items: center; padding-top: 25px;">
+                    <label style="cursor: pointer; display: flex; align-items: center; font-weight: normal; margin-bottom: 0;">
+                        <input type="checkbox" id="search-include-history" style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 0;">
+                        包含歷史資料
+                    </label>
+                </div>
+
                 <div class="search-btn-container">
                     <button type="button" class="btn-clear" id="btn-clear">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -738,6 +745,7 @@
 
     <script>
         let allHistoricalRecords = [];
+        let historyRecordsCache = null;
         let currentFilteredRecords = []; // Keep track of the currently displayed records for Excel export
         let currentPage = 1;
         const itemsPerPage = 50;
@@ -933,11 +941,29 @@
         });
 
         // Search button click
-        document.getElementById('btn-search').addEventListener('click', function () {
+        document.getElementById('btn-search').addEventListener('click', async function () {
             const sDateStart = document.getElementById('search-date-start').value.trim();
             const sDateEnd = document.getElementById('search-date-end').value.trim();
             const sCodeOrName = document.getElementById('search-code').value.trim().toLowerCase();
             const sSystem = document.getElementById('search-system').value;
+            const includeHistory = document.getElementById('search-include-history').checked;
+
+            if (includeHistory && historyRecordsCache === null) {
+                const btn = document.getElementById('btn-search');
+                const origText = btn.innerHTML;
+                btn.innerHTML = '載入歷史...';
+                btn.disabled = true;
+                try {
+                    const res = await fetch(SCRIPT_URL + '?action=get_history');
+                    historyRecordsCache = await res.json();
+                } catch(e) {
+                    console.error("Failed to load history:", e);
+                    historyRecordsCache = [];
+                    alert('無法載入歷史資料');
+                }
+                btn.innerHTML = origText;
+                btn.disabled = false;
+            }
 
             // Convert boundaries to Comparable Date objects if they exist
             let dStart = null, dEnd = null;
@@ -952,7 +978,9 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const filtered = allHistoricalRecords.filter(record => {
+            const baseRecords = includeHistory ? allHistoricalRecords.concat(historyRecordsCache || []) : allHistoricalRecords;
+
+            const filtered = baseRecords.filter(record => {
                 let match = true;
 
                 const recDateStr = record['開賣日期'];
@@ -967,7 +995,7 @@
                 }
 
                 // Default filter: if no conditions, hide records with sale date before today
-                if (!hasConditions) {
+                if (!hasConditions && !includeHistory) {
                     if (!isValidDate) {
                         match = false; 
                     } else {
