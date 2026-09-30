@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 
 <head>
@@ -454,6 +454,13 @@
                     </select>
                 </div>
 
+                <div class="form-group" style="display: flex; align-items: center; padding-top: 25px;">
+                    <label style="cursor: pointer; display: flex; align-items: center; font-weight: normal; margin-bottom: 0;">
+                        <input type="checkbox" id="search-include-history" style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 0;">
+                        包含歷史資料
+                    </label>
+                </div>
+
                 <div class="search-btn-container">
                     <button type="button" class="btn-search" id="btn-search">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -475,6 +482,7 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuMgACVmHzANXHzMzMXrbqX8bF6EffjJdnFOcSuP80R4FUW-iirDa6192rSLjO29Nrjg/exec';
         let allHistoricalRecords = [];
+        let historyRecordsCache = null;
         let calendar;
 
         window.onload = async function () {
@@ -510,7 +518,7 @@
             // Setup year dropdown
             const yearSelect = document.getElementById('search-year');
             const currentYear = new Date().getFullYear();
-            for (let i = currentYear - 2; i <= currentYear + 2; i++) {
+            for (let i = currentYear - 10; i <= currentYear + 2; i++) {
                 let opt = document.createElement('option');
                 opt.value = i;
                 opt.textContent = i + '年';
@@ -568,9 +576,27 @@
             document.getElementById('btn-search').click();
         };
 
-        document.getElementById('btn-search').addEventListener('click', function () {
+        document.getElementById('btn-search').addEventListener('click', async function () {
             const year = document.getElementById('search-year').value;
             const month = document.getElementById('search-month').value;
+            const includeHistory = document.getElementById('search-include-history').checked;
+
+            if (includeHistory && historyRecordsCache === null) {
+                const btn = document.getElementById('btn-search');
+                const origText = btn.innerHTML;
+                btn.innerHTML = '載入歷史...';
+                btn.disabled = true;
+                try {
+                    const res = await fetch(SCRIPT_URL + '?action=get_history');
+                    historyRecordsCache = await res.json();
+                } catch(e) {
+                    console.error("Failed to load history:", e);
+                    historyRecordsCache = [];
+                    alert('無法載入歷史資料');
+                }
+                btn.innerHTML = origText;
+                btn.disabled = false;
+            }
 
             if (month) {
                 calendar.gotoDate(`${year}-${month}-01`);
@@ -578,7 +604,9 @@
                 calendar.gotoDate(year + '-01-01');
             }
 
-            const events = allHistoricalRecords.filter(r => r['開賣日期'] && r['售票/核銷'] === '售票').map(r => {
+            const baseRecords = includeHistory ? allHistoricalRecords.concat(historyRecordsCache || []) : allHistoricalRecords;
+
+            const events = baseRecords.filter(r => r['開賣日期'] && r['售票/核銷'] === '售票').map(r => {
                 const cleanDateStr = String(r['開賣日期']).replace(/\s*\(.*?\)/g, '').replace(/-/g, '/').trim();
                 const d = new Date(cleanDateStr);
 
@@ -634,8 +662,10 @@
         document.getElementById('btn-export-excel').addEventListener('click', function () {
             const year = document.getElementById('search-year').value;
             const month = document.getElementById('search-month').value;
+            const includeHistory = document.getElementById('search-include-history').checked;
+            const baseRecords = includeHistory ? allHistoricalRecords.concat(historyRecordsCache || []) : allHistoricalRecords;
 
-            const filteredRecords = allHistoricalRecords.filter(r => {
+            const filteredRecords = baseRecords.filter(r => {
                 if (!r['開賣日期'] || r['售票/核銷'] !== '售票') return false;
 
                 const cleanDateStr = String(r['開賣日期']).replace(/\s*\(.*?\)/g, '').replace(/-/g, '/').trim();
