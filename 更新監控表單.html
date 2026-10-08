@@ -719,6 +719,8 @@
             width: 100%;
             box-sizing: border-box;
         }
+    
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 
@@ -867,7 +869,7 @@
             </div>
         </div>
 
-        <div id="result-count"></div>
+        <div style="display: flex; align-items: center; gap: 10px;"><div id="result-count"></div><div id="bg-loading-indicator" style="color:#f59e0b;font-size:0.85rem;display:none;"></div></div>
 
         <div class="table-wrapper">
             <table id="results-table">
@@ -1055,8 +1057,8 @@
         // 整批覆蓋 mode：action='save'
         // ====================================================
         async function saveToGAS(data, action = 'save') {
-            sessionStorage.removeItem('monitoring_data_cache');
-            sessionStorage.removeItem('monitoring_data_time');
+            localStorage.removeItem('monitoring_data_cache');
+            localStorage.removeItem('monitoring_data_time');
             const payload = JSON.stringify({ action: action, data });
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -1107,23 +1109,7 @@
         }
 
         // Helper: load data with retry
-        async function loadData(retries = 2) {
-            const CACHE_KEY = 'monitoring_data_cache';
-            const CACHE_TIME_KEY = 'monitoring_data_time';
-            const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-            const now = new Date().getTime();
-            const cachedData = sessionStorage.getItem(CACHE_KEY);
-            const cachedTime = sessionStorage.getItem(CACHE_TIME_KEY);
-
-            if (cachedData && cachedTime && now - parseInt(cachedTime) < CACHE_TTL) {
-                try {
-                    return JSON.parse(cachedData);
-                } catch (e) {
-                    console.warn('Cache parsing failed', e);
-                }
-            }
-
+                async function fetchLatestData(retries = 2) {
             for (let i = 0; i <= retries; i++) {
                 try {
                     const response = await fetchWithTimeout(`${SCRIPT_URL}?t=${new Date().getTime()}`, {}, 30000);
@@ -1131,8 +1117,8 @@
                     const text = await response.text();
                     const data = JSON.parse(text);
                     if (Array.isArray(data)) {
-                        sessionStorage.setItem(CACHE_KEY, text);
-                        sessionStorage.setItem(CACHE_TIME_KEY, new Date().getTime().toString());
+                        localStorage.setItem('monitoring_data_cache', text);
+                        localStorage.setItem('monitoring_data_time', new Date().getTime().toString());
                         return data;
                     }
                     if (data && data.error) throw new Error(data.error);
@@ -1140,7 +1126,7 @@
                 } catch (err) {
                     console.warn(`第 ${i + 1} 次載入失敗:`, err.message);
                     if (i < retries) {
-                        await new Promise(r => setTimeout(r, 2000)); // 等待 2 秒後重試
+                        await new Promise(r => setTimeout(r, 2000));
                     } else {
                         throw err;
                     }
@@ -1148,25 +1134,48 @@
             }
         }
 
-        // Initialize logic
         window.onload = async function () {
-            document.getElementById('results-tbody').innerHTML = '<tr><td colspan="24" class="empty-state">資料載入中，請稍候...</td></tr>';
-            try {
-                allHistoricalRecords = await loadData(2);
-            } catch (e) {
-                console.error("無法讀取資料庫資料:", e);
-                document.getElementById('results-tbody').innerHTML =
-                    `<tr><td colspan="24" class="empty-state" style="color:red;">
-                        ⚠️ 讀取資料庫失敗（${e.message || '網路逾時'}），
-                        <a href="javascript:location.reload()" style="color:#4f46e5;font-weight:bold;">請點此重整頁面</a>
-                    </td></tr>`;
-                // 仍然執行搜尋（顯示空結果）
-                document.getElementById('btn-search').click();
-                return;
+            const CACHE_KEY = 'monitoring_data_cache';
+            const CACHE_TIME_KEY = 'monitoring_data_time';
+            const CACHE_TTL = 30 * 60 * 1000; // 30 minutes visual cache
+
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+            const now = new Date().getTime();
+            
+            let hasCache = false;
+            if (cachedData && cachedTime && now - parseInt(cachedTime) < CACHE_TTL) {
+                try {
+                    allHistoricalRecords = JSON.parse(cachedData);
+                    hasCache = true;
+                    document.getElementById('btn-search').click();
+                    const ind = document.getElementById('bg-loading-indicator');
+                    if(ind) { ind.style.display = 'block'; ind.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: text-bottom; margin-right: 4px; animation: spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="4.93" x2="19.07" y2="7.76"></line></svg>載入快取中，背景正同步最新資料...'; }
+                } catch (e) {
+                    console.warn('Cache parsing failed', e);
+                }
             }
 
-            // 觸發查詢以正確渲染結果
-            document.getElementById('btn-search').click();
+            if (!hasCache) {
+                document.getElementById('results-tbody').innerHTML = '<tr><td colspan="24" class="empty-state">資料載入中，請稍候...</td></tr>';
+            }
+
+            try {
+                const newData = await fetchLatestData(2);
+                allHistoricalRecords = newData;
+                const ind = document.getElementById('bg-loading-indicator');
+                if(ind) ind.style.display = 'none';
+                document.getElementById('btn-search').click();
+            } catch (e) {
+                if (!hasCache) {
+                    console.error("無法讀取資料庫資料:", e);
+                    document.getElementById('results-tbody').innerHTML =
+                        `<tr><td colspan="24" class="empty-state" style="color:red;">
+                            ⚠️ 讀取資料庫失敗（${e.message || '網路逾時'}），
+                            <a href="javascript:location.reload()" style="color:#4f46e5;font-weight:bold;">請點此重整頁面</a>
+                        </td></tr>`;
+                }
+            }
         };
 
         // Clear button click
@@ -1187,14 +1196,14 @@
         // Refresh button click
         document.getElementById('btn-refresh').addEventListener('click', async function () {
             // clear cache
-            sessionStorage.removeItem('monitoring_data_cache');
-            sessionStorage.removeItem('monitoring_data_time');
+            localStorage.removeItem('monitoring_data_cache');
+            localStorage.removeItem('monitoring_data_time');
             historyRecordsCache = null;
             
             document.getElementById('results-tbody').innerHTML = '<tr><td colspan="24" class="empty-state">資料更新中，請稍候...</td></tr>';
             try {
                 // force reload
-                allHistoricalRecords = await loadData(2);
+                allHistoricalRecords = await fetchLatestData(2);
                 document.getElementById('btn-search').click();
             } catch (e) {
                 console.error("無法讀取資料庫資料:", e);
@@ -1946,7 +1955,9 @@
                     .td-blue { background-color: #B7DEE8; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
                     .td-gray { background-color: #D9D9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
                     .td-yellow { background-color: #FFE699; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; padding: 4px; }
-                </style>
+                
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
                 <table style="border-collapse: collapse;">
                     <tr>
                         <th class="th-fde9d9" rowspan="2">項次</th>
@@ -2107,7 +2118,9 @@
                     .td-blue { background-color: #B7DEE8; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
                     .td-gray { background-color: #D9D9D9; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
                     .td-yellow { background-color: #FFE699; border: .5pt solid windowtext; vertical-align: middle; text-align: center; white-space: nowrap; }
-                </style>
+                
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
                 <table style="border-collapse: collapse;">
                     <tr>
                         <th class="th-fde9d9" rowspan="2">項次</th>

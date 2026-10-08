@@ -338,28 +338,23 @@ function readTableAsArray() {
 
   if (lastRow < 1 || lastCol < 1) return [];
 
-  var a1Value = sheet.getRange(1, 1).getValue();
-  var a1Str   = a1Value ? a1Value.toString().trim() : '';
-
-  // ── 舊版相容：A1 存的是 JSON 陣列字串 ──
+  var fullData = sheet.getDataRange().getValues();
+  var a1Str = fullData[0][0] ? fullData[0][0].toString().trim() : '';
+  
   if (a1Str.charAt(0) === '[') {
     try {
       var oldData = JSON.parse(a1Str);
       if (Array.isArray(oldData) && oldData.length > 0) {
-        Logger.log('readTableAsArray: 偵測到舊版 JSON 格式，自動遷移至表格格式');
-        handleSaveArray(oldData); // 遷移寫回新格式
+        handleSaveArray(oldData);
         return oldData;
       }
-    } catch(e) {
-      // 解析失敗，當作一般表格處理
-    }
+    } catch(e) {}
   }
-
-  // ── 新版：表格格式 ──
-  if (lastRow < 2) return []; // 只有標題列，無資料
-
-  var headers  = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
-  var dataRows = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  
+  if (lastRow < 2) return [];
+  
+  var headers = fullData[0];
+  var dataRows = fullData.slice(1);
 
   return dataRows
     .filter(function(row) {
