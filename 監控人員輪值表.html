@@ -910,7 +910,7 @@
                 if (cachedData && cachedTime && now - parseInt(cachedTime) < CACHE_TTL) {
                     allHistoricalRecords = JSON.parse(cachedData);
                 } else {
-                    const response = await fetch(`https://script.google.com/macros/s/AKfycbyAE9D4xxmt5YqmvoUJjWXgzuGWykP9HtTGeaURK2Mwjwn9NEYp0SbgNJlnH0uw2eajag/exec?t=${new Date().getTime()}`);
+                    const response = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
                     const text = await response.text();
                     allHistoricalRecords = JSON.parse(text);
                     if (Array.isArray(allHistoricalRecords)) {
@@ -1257,8 +1257,17 @@
 						<td class="col-level" style="${c('監控等級')}">${r['監控等級'] || '-'}</td>
 						<td class="col-machine" style="${c('機器等級')}">${r['機器等級'] || '-'}</td>
 						<td class="col-queue" style="${c('排隊機制')}">
-							${r['排隊機制'] || '-'}
-							${r['排隊機制'] === '一般排隊' && r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? `<br>${r['預排提前時間']}分` : ''}
+							${(() => {
+								let q = r['排隊機制'] || '-';
+								if (q.startsWith('一般排隊')) {
+									let match = q.match(/預排(\d+)分/);
+									if (match) return `一般排隊<br>預排${match[1]}分`;
+									if (r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)') return `一般排隊<br>預排${r['預排提前時間']}分`;
+									if (q.includes('無預排')) return `一般排隊<br>無預排`;
+									return `一般排隊`;
+								}
+								return q;
+							})()}
 						</td>
 						<td class="col-channel" style="${c('售票通路')}">${r['售票通路'] || '-'}</td>
 						<td class="col-pm">${buildSelectHtml('pm', '監控PM', r['監控PM'], origIdx)}</td>
@@ -1383,7 +1392,7 @@
 
             // Map each column to match exact colors and modifications
             sortedRecords.forEach((r, idx) => {
-                const qQueue = r['排隊機制'];
+                const qQueue = (r['排隊機制'] || '').trim();
                 const mods = r._modified || [];
                 const s = (key, baseCls) => mods.includes(key) ? `class="${baseCls}" style="color: red; font-weight: bold;"` : `class="${baseCls}"`;
 
@@ -1440,13 +1449,13 @@
                         <td ${s('A節目代碼/E活動分類', 'td-data')}>${r['A節目代碼/E活動分類'] || ''}</td>
                         <td ${s('機器等級', 'td-gray')}>${r['機器等級'] || ''}</td>
                         <td class="td-data">${qQueue === '無' ? 'V' : ''}</td>
-                        <td class="td-data">${qQueue === '一般排隊' ? (r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? 'V<br style="mso-data-placement:same-cell;">預排' + r['預排提前時間'] + '分' : 'V') : ''}</td>
+                        <td class="td-data">${qQueue && qQueue.startsWith('一般排隊') ? (qQueue.match(/預排(\d+)分/) ? 'V<br style="mso-data-placement:same-cell;">預排' + qQueue.match(/預排(\d+)分/)[1] + '分' : (r['預排提前時間'] && r['預排提前時間'] !== '無' && r['預排提前時間'] !== '(無)' ? 'V<br style="mso-data-placement:same-cell;">預排' + r['預排提前時間'] + '分' : 'V')) : ''}</td>
                         <td class="td-data">${qQueue === '流管畫面' ? 'V' : ''}</td>
                         <td ${s('售票通路', 'td-yellow')}>${r['售票通路'] || ''}</td>
                         <td class="td-data">${r['機台流管'] || ''}</td>
                         <td class="td-data">${r['可售張數'] || ''}</td>
                         <td class="td-data">${r['其它單位監控'] || ''}</td>
-                        <td class="td-data">${r['特別說明'] || ''}</td>
+                        <td class="td-data">${r['特別說明'] === '(無)' ? '' : (r['特別說明'] || '')}</td>
                         <td class="td-data" style="text-align: left; vertical-align: top; white-space: normal;">${monitorsHtml}</td>
                     </tr>
                 `;
