@@ -758,7 +758,8 @@
             if (!record) return;
 
             const title = record['活動名稱'] || '無標題活動';
-            const dateStr = record['開賣日期'] || '';
+            // 使用與畫面顯示相同的格式化（本地時區），避免 ISO/UTC 字串造成日期偏移
+            const dateStr = record['開賣日期'] ? String(formatSaleDateStr(record['開賣日期'])) : '';
             const timeStr = record['時間'] || '';
 
             let startStr = '';
