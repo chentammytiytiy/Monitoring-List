@@ -867,6 +867,7 @@
                         <label>排隊方式</label>
                         <select id="f-queue-method">
                             <option value="預排+一般排隊(機台第一分鐘流管設1)">預排+一般排隊(機台第一分鐘流管設1)</option>
+                            <option value="一般排隊無預排">一般排隊無預排</option>
                             <option value="進A排隊(流管版型)">進A排隊(流管版型)</option>
                         </select>
                     </div>
@@ -974,6 +975,7 @@
                         let qMethod = queueItem['排隊方式'] || '';
                         if (!qMethod) {
                             if (mechanism.includes('流管畫面')) qMethod = '進A排隊(流管版型)';
+                            else if (mechanism.includes('無預排')) qMethod = '一般排隊無預排';
                             else if (mechanism.includes('一般排隊')) qMethod = '預排+一般排隊(機台第一分鐘流管設1)';
                         }
 
@@ -1225,6 +1227,9 @@
                 if (mechanism.includes('流管畫面')) {
                     defaultQueueMethod = '進A排隊(流管版型)';
                     isNewMethod = true;
+                } else if (mechanism.includes('無預排')) {
+                    defaultQueueMethod = '一般排隊無預排';
+                    isNewMethod = true;
                 } else if (mechanism.includes('一般排隊')) {
                     defaultQueueMethod = '預排+一般排隊(機台第一分鐘流管設1)';
                     isNewMethod = true;
@@ -1327,6 +1332,11 @@
                 document.getElementById('f-queue-it-rate').value = '1X:00→2000/人\n1X:01→2000/人\n1X:02→2000/人';
             } else if (this.value === '預排+一般排隊(機台第一分鐘流管設1)') {
                 document.getElementById('f-reminder-text').value = '活動 開 始 銷 售 時， 系 統 會 隨 機 產 生 排 隊 順 序， 並 非 依 進 入 等 候室 的 先 後 順 序 分 配。 請 依 排 隊 順 序 耐 心 等 候 進 入 購 票 頁 面。';
+                document.getElementById('f-queue-it-msg').value = '(1). 顯示文字：因線上人數眾多，已將您依序安排於等候區。請勿離開、重整畫面或另開分頁，以免喪失優先等待權益。\n(2). 排隊的畫面顯示：等候時間＋進度條';
+                document.getElementById('f-queue-it-rate').value = '每分鐘2000';
+            } else if (this.value === '一般排隊無預排') {
+                document.getElementById('f-pre-queue-time').value = '';
+                document.getElementById('f-reminder-text').value = 'X';
                 document.getElementById('f-queue-it-msg').value = '(1). 顯示文字：因線上人數眾多，已將您依序安排於等候區。請勿離開、重整畫面或另開分頁，以免喪失優先等待權益。\n(2). 排隊的畫面顯示：等候時間＋進度條';
                 document.getElementById('f-queue-it-rate').value = '每分鐘2000';
             }
